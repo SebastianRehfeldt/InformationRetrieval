@@ -63,15 +63,10 @@ public class PatentHandler extends DefaultHandler {
 			System.out.println();
 		}
 		if (parents.peek().equals("doc-number")) {
-			Stack<String> tempStore = new Stack<String>();
-			tempStore.push(parents.pop());
-			tempStore.push(parents.pop());
-			if (parents.peek().equals("publication-reference")) {
+			if (parents.get(parents.size()-3).equals("publication-reference")) {
 				primitivePrint(ch, start, length);
 				System.out.print(": ");
 			}
-			parents.push(tempStore.pop());
-			parents.push(tempStore.pop());
 		}
 	}
 
