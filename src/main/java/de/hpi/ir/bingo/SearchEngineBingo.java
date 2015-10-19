@@ -10,6 +10,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author: Bingo
@@ -56,27 +57,9 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 	void printPatentTitles() {
 		String fileName = "res/testData.xml";
 
-		try {
-			XMLReader xr = XMLReaderFactory.createXMLReader();
-
-			DefaultHandler handler = new PatentHandler();
-			xr.setContentHandler(handler);
-			xr.setErrorHandler(handler);
-
-			FileReader r = new FileReader(fileName);
-			xr.parse(new InputSource(r));
-
-		} catch (SAXException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		Collection<PatentData> patents = PatentHandler.parseXml(fileName);
+		for (PatentData patent : patents) {
+			System.out.printf("%d: %s\n", patent.getPatentId(), patent.getTitle());
 		}
-
 	}
-
 }
