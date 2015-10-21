@@ -1,15 +1,19 @@
 package de.hpi.ir.bingo;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
-import com.google.common.base.Verify;
 
-public class PatentData {
+import java.io.Serializable;
+
+public class PatentData implements Serializable{
 	private final int patentId;
 	private final String title;
+	private final String abstractText;
 
-	public PatentData(int patentId, String title) {
+	public PatentData(int patentId, String title, String abstractText) {
 		this.patentId = patentId;
 		this.title = title;
+		this.abstractText = abstractText;
 	}
 
 	public int getPatentId() {
@@ -20,9 +24,13 @@ public class PatentData {
 		return title;
 	}
 
+	public String getAbstractText() {
+		return abstractText;
+	}
+
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 						.add("patentId", patentId)
 						.add("title", title)
 						.toString();

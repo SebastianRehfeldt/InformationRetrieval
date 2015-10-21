@@ -14,46 +14,42 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Stack;
+import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 public class PatentHandler extends DefaultHandler {
 
 	private Stack<String> parents;
-	private List<PatentData> patents;
 	private StringBuilder currentTitle;
 	private StringBuilder currentId;
+	private StringBuilder currentAbstract;
+	private Consumer<PatentData> patentComsumer;
 
-	public static Collection<PatentData> parseXml(String fileName) {
+	public static void parseXml(String fileName, Consumer<PatentData> patentComsumer) {
 		try {
 			XMLReader xr = XMLReaderFactory.createXMLReader();
 
-			PatentHandler handler = new PatentHandler();
+			PatentHandler handler = new PatentHandler(patentComsumer);
 			xr.setContentHandler(handler);
 			xr.setErrorHandler(handler);
 
 			FileReader r = new FileReader(fileName);
 			xr.parse(new InputSource(r));
-
-			return handler.getPatents();
-
 		} catch (SAXException | IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private PatentHandler() {
-	}
-
-
-	public Collection<PatentData> getPatents() {
-		return patents;
+	private PatentHandler(Consumer<PatentData> patentComsumer) {
+		this.patentComsumer = patentComsumer;
 	}
 
 	@Override
 	public void startDocument() {
 		parents = new Stack<>();
-		patents = new ArrayList<>();
 		currentId = new StringBuilder();
 		currentTitle = new StringBuilder();
+		currentAbstract = new StringBuilder();
 	}
 
 	@Override
@@ -67,12 +63,14 @@ public class PatentHandler extends DefaultHandler {
 
 	@Override
 	public void endElement(String uri, String name, String qName) {
-		if(qName.equals("us-patent-grant")) {
+		if (qName.equals("us-patent-grant")) {
 			int id = Integer.parseInt(currentId.toString());
 			String title = currentTitle.toString().replaceAll("\\s+", " "); // remove duplicate whitespace
-			patents.add(new PatentData(id, title));
+			String abstractText = currentAbstract.toString().replaceAll("\\s+", " ");
+			patentComsumer.accept(new PatentData(id, title, abstractText));
 			currentId.setLength(0);
 			currentTitle.setLength(0);
+			currentAbstract.setLength(0);
 		}
 		parents.pop();
 	}
@@ -82,10 +80,11 @@ public class PatentHandler extends DefaultHandler {
 		if (parents.peek().equals("invention-title")) {
 			currentTitle.append(ch, start, length);
 		}
-		if (parents.peek().equals("doc-number")) {
-			if (parents.get(parents.size()-3).equals("publication-reference")) {
-				currentId.append(ch, start, length);
-			}
+		if (parents.peek().equals("doc-number") && parents.get(parents.size() - 3).equals("publication-reference")) {
+			currentId.append(ch, start, length);
+		}
+		if (parents.peek().equals("p") && parents.get(parents.size() - 2).equals("abstract")) {
+			currentAbstract.append(ch, start, length);
 		}
 	}
 

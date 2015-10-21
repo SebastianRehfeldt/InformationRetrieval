@@ -1,16 +1,19 @@
 package de.hpi.ir.bingo;
 
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
-import org.xml.sax.helpers.DefaultHandler;
-import org.xml.sax.helpers.XMLReaderFactory;
+import com.google.common.collect.Lists;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.en.EnglishMinimalStemFilter;
+import org.apache.lucene.analysis.standard.StandardAnalyzer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
+
 
 /**
  * @author: Bingo
@@ -33,6 +36,27 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 
 	@Override
 	void index(String directory) {
+
+	}
+
+	private List<String> tokenizeStopStem(Reader reader) {
+		Analyzer analyzer = new StandardAnalyzer();
+		try {
+			TokenStream stream = analyzer.tokenStream("", reader);
+			stream = new EnglishMinimalStemFilter(stream);
+			stream.reset();
+			//OffsetAttribute offsetAttribute = stream.addAttribute(OffsetAttribute.class);
+			List<String> result = Lists.newArrayList();
+			while (stream.incrementToken()) {
+				String token = stream.getAttribute(CharTermAttribute.class).toString();
+				//OffsetAttribute attribute = stream.getAttribute(OffsetAttribute.class);
+				result.add(token);
+				// TODO get position, return objects
+			}
+			return result;
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	@Override
@@ -57,9 +81,10 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 	void printPatentTitles() {
 		String fileName = "res/testData.xml";
 
-		Collection<PatentData> patents = PatentHandler.parseXml(fileName);
-		for (PatentData patent : patents) {
+		PatentHandler.parseXml(fileName, (patent) -> {
 			System.out.printf("%d: %s\n", patent.getPatentId(), patent.getTitle());
-		}
+			System.out.println(tokenizeStopStem(new StringReader(patent.getAbstractText())));
+			// TODO build index
+		});
 	}
 }
