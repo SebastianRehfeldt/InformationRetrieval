@@ -13,10 +13,10 @@ public class TableMerger {
         Mergeable<T> mergedWith(Mergeable<T> other);
     }
 
-    public static <T> void merge(Path merged, Path file1, Path file2) {
+    public static <T> void merge(Path merged, Path file1, Path file2, Class<Mergeable<T>> clazz) {
         TableWriter<Mergeable<T>> writer = new TableWriter<>(merged, 1, false);
-        TableReader<Mergeable<T>> reader1 = new TableReader<>(file1);
-        TableReader<Mergeable<T>> reader2 = new TableReader<>(file2);
+        TableReader<Mergeable<T>> reader1 = new TableReader<>(file1, clazz);
+        TableReader<Mergeable<T>> reader2 = new TableReader<>(file2, clazz);
 
         Map.Entry<String, Mergeable<T>> entry1 = reader1.readNext();
         Map.Entry<String, Mergeable<T>> entry2 = reader2.readNext();

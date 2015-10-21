@@ -1,12 +1,12 @@
 package de.hpi.ir.bingo.index;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.RandomAccessFile;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
+import com.esotericsoftware.kryo.io.Output;
 
 class TableUtil {
 
@@ -14,33 +14,17 @@ class TableUtil {
         return Paths.get(file.toString() + ".index");
     }
 
-    static ObjectOutputStream objectOutputStream(FileOutputStream fos) {
+    static Output createOutput(Path file) {
         try {
-            return new ObjectOutputStream(fos);
+            return new Output(Files.newOutputStream(file));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 
-    static FileOutputStream createOutputStream(Path file) {
+    static RandomAccessInput createInput(Path file) {
         try {
-            return new FileOutputStream(file.toFile());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    static ObjectInputStream objectInputStream(FileInputStream fis) {
-        try {
-            return new ObjectInputStream(fis);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    static FileInputStream createInputStream(Path file) {
-        try {
-            return new FileInputStream(file.toFile());
+            return new RandomAccessInput(new RandomAccessFile(file.toFile(), "r"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

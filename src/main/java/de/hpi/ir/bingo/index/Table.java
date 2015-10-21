@@ -1,66 +1,55 @@
 package de.hpi.ir.bingo.index;
 
-import java.io.EOFException;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.nio.file.Path;
+
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
 
 public class Table<T> implements AutoCloseable {
 
     public static final long MISSING_ENTRY = -1L;
-    private final FileInputStream fis;
-    private final ObjectInputStream reader;
+    private final RandomAccessInput input;
     private final TableIndex index;
+    private final Class<T> clazz;
+    private final Kryo kryo = new Kryo();
 
-    private Table(FileInputStream fis, TableIndex index) {
-        this.fis = fis;
-        this.reader = TableUtil.objectInputStream(fis);
+    private Table(RandomAccessInput input, TableIndex index, Class<T> clazz) {
+        this.input = input;
         this.index = index;
+        this.clazz = clazz;
     }
 
     public T get(String key) {
-        long position = index.getPosition(key);
+        int position = (int) index.getPosition(key);
         if (position == MISSING_ENTRY) {
             return null;
         }
-        try {
-            fis.getChannel().position(position);
-            for (int i = 0; i < index.getBucketSize(); i++) {
-                String currentKey = reader.readUTF();
-                if (key.equals(currentKey)) {
-                    return (T) reader.readObject();
-                } else {
-                    reader.readObject(); // skip this
-                }
+        input.setStreamPosition(position);
+        for (int i = 0; i < index.getBucketSize(); i++) {
+            if (!input.canReadInt()) {
+                return null;
             }
-            return null;
-        } catch (EOFException e) {
-            return null;
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
+            String currentKey = input.readString();
+            if (key.equals(currentKey)) {
+                return kryo.readObject(input, clazz);
+            } else {
+                kryo.readObject(input, String.class); // skip this
+            }
         }
+        return null;
     }
 
-    public static <T> Table<T> open(Path file) {
-        Path indexFile = TableUtil.getIndexPath(file);
-        ObjectInputStream indexReader = TableUtil.objectInputStream(TableUtil.createInputStream(indexFile));
-        FileInputStream fis = TableUtil.createInputStream(file);
-        try {
-            TableIndex index = (TableIndex) indexReader.readObject();
-            indexReader.close();
-            return new Table<T>(fis, index);
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+    public static <T> Table<T> open(Path file, Class<T> clazz) {
+        Path indexPath = TableUtil.getIndexPath(file);
+        Input indexReader = TableUtil.createInput(indexPath);
+        TableIndex index = new Kryo().readObject(indexReader, TableIndex.class);
+        indexReader.close();
+        RandomAccessInput input = TableUtil.createInput(file);
+        return new Table<>(input, index, clazz);
     }
 
     @Override
     public void close() {
-        try {
-            reader.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        input.close();
     }
 }

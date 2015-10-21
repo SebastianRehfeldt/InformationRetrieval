@@ -1,36 +1,34 @@
 package de.hpi.ir.bingo.index;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Output;
 import com.google.common.base.Verify;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Longs;
 
 public class TableWriter<T> implements AutoCloseable {
 
-    private final FileOutputStream fos;
-    private final ObjectOutputStream writer;
-    private final ObjectOutputStream indexWriter;
+    private final Output writer;
+    private final Output indexWriter;
     private String lastKey = null;
 
     private final ArrayList<String> indexKeys;
     private final ArrayList<Long> indexPositions;
     private final int bucketSize;
     private int size;
+    private final Kryo kryo = new Kryo();
 
     public TableWriter(Path file, int bucketSize, boolean createIndex) {
         this.bucketSize = bucketSize;
         this.size = 0;
-        fos = TableUtil.createOutputStream(file);
-        writer = TableUtil.objectOutputStream(fos);
+        writer = TableUtil.createOutput(file);
         if (createIndex) {
             indexKeys = Lists.newArrayList();
             indexPositions = Lists.newArrayList();
-            indexWriter = TableUtil.objectOutputStream(TableUtil.createOutputStream(TableUtil.getIndexPath(file)));
+            indexWriter = TableUtil.createOutput(TableUtil.getIndexPath(file));
         } else {
             indexKeys = null;
             indexPositions = null;
@@ -42,32 +40,23 @@ public class TableWriter<T> implements AutoCloseable {
         Verify.verifyNotNull(key);
         Verify.verify(lastKey == null || lastKey.compareTo(key) < 0, "please insert in order!");
         lastKey = key;
-        try {
             if (indexKeys != null && size % bucketSize == 0) {
-                writer.flush();
-                long position = fos.getChannel().position();
+                long position = writer.total();
                 indexKeys.add(key);
                 indexPositions.add(position);
             }
-            writer.writeUTF(key);
-            writer.writeObject(value);
+            writer.writeAscii(key);
+            kryo.writeObject(writer, value);
             size++;
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
     public void close() {
-        try {
-            if (indexKeys != null) {
-                TableIndex index = new TableIndex(indexKeys.toArray(new String[indexKeys.size()]), Longs.toArray(indexPositions), bucketSize);
-                indexWriter.writeObject(index);
-                indexWriter.close();
-            }
-            writer.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        if (indexKeys != null) {
+            TableIndex index = new TableIndex(indexKeys.toArray(new String[indexKeys.size()]), Longs.toArray(indexPositions), bucketSize);
+            kryo.writeObject(indexWriter, index);
+            indexWriter.close();
         }
+        writer.close();
     }
 }

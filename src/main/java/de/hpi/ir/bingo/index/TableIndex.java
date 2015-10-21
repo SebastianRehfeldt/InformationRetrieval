@@ -8,6 +8,10 @@ public class TableIndex implements Serializable {
     private final long[] positions;
     private final int bucketSize;
 
+    private TableIndex() {
+        this(null, null, -1);
+    }
+
     public TableIndex(String[] keys, long[] positions, int bucketSize) {
         this.keys = keys;
         this.positions = positions;

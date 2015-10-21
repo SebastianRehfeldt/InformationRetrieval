@@ -27,7 +27,7 @@ public class TableReaderWriterTest {
         writer.put("k2", "v2");
         writer.close();
 
-        TableReader<String> reader = new TableReader<>(tmpFile);
+        TableReader<String> reader = new TableReader<>(tmpFile, String.class);
         assertThat(reader.readNext()).isEqualTo(Maps.immutableEntry("k1", "v1"));
         assertThat(reader.readNext()).isEqualTo(Maps.immutableEntry("k2", "v2"));
         assertThat(reader.readNext()).isNull();

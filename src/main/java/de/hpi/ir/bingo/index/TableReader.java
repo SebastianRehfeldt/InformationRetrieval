@@ -1,39 +1,34 @@
 package de.hpi.ir.bingo.index;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.nio.file.Path;
 import java.util.Map;
 
+import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.io.Input;
 import com.google.common.collect.Maps;
 
 public class TableReader<T> implements AutoCloseable {
 
-    private final ObjectInputStream reader;
+    private final Input reader;
+    private final Class<T> clazz;
+    private final Kryo kryo = new Kryo();
 
-    public TableReader(Path file) {
-        reader = TableUtil.objectInputStream(TableUtil.createInputStream(file));
+    public TableReader(Path file, Class<T> clazz) {
+        this.clazz = clazz;
+        reader = TableUtil.createInput(file);
     }
 
     public Map.Entry<String, T> readNext() {
-        try {
-            String key = reader.readUTF();
-            T value = (T) reader.readObject();
-            return Maps.immutableEntry(key, value);
-        } catch (EOFException e) {
+        if (!reader.canReadInt()) {
             return null;
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException(e);
         }
+        String key = reader.readString();
+        T value = kryo.readObject(reader, clazz);
+        return Maps.immutableEntry(key, value);
     }
 
     @Override
     public void close() {
-        try {
-            reader.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        reader.close();
     }
 }
