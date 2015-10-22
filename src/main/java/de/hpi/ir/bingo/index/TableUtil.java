@@ -6,9 +6,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
 
-class TableUtil {
+final class TableUtil {
 
     static Path getIndexPath(Path file) {
         return Paths.get(file.toString() + ".index");
@@ -28,6 +29,20 @@ class TableUtil {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static final ThreadLocal<Kryo> kryos = new ThreadLocal<Kryo>() {
+        protected Kryo initialValue() {
+            Kryo kryo = new Kryo();
+            kryo.setReferences(false);
+            kryo.setRegistrationRequired(true);
+            kryo.register(TableIndex.class, new TableIndex.TableIndexSerializer());
+            return kryo;
+        }
+    };
+
+    static Kryo getKryo() {
+        return kryos.get();
     }
 
 }

@@ -13,7 +13,7 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.base.Stopwatch;
 
 
-public class TableTest {
+public final class TableTest {
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();

@@ -9,7 +9,7 @@ import com.google.common.base.Verify;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Longs;
 
-public class TableWriter<T> implements AutoCloseable {
+public final class TableWriter<T> implements AutoCloseable {
 
     private final Output writer;
     private final Output indexWriter;
@@ -19,7 +19,7 @@ public class TableWriter<T> implements AutoCloseable {
     private final ArrayList<Long> indexPositions;
     private final int bucketSize;
     private int size;
-    private final Kryo kryo = new Kryo();
+    private final Kryo kryo = TableUtil.getKryo();
 
     public TableWriter(Path file, int bucketSize, boolean createIndex) {
         this.bucketSize = bucketSize;
@@ -40,14 +40,14 @@ public class TableWriter<T> implements AutoCloseable {
         Verify.verifyNotNull(key);
         Verify.verify(lastKey == null || lastKey.compareTo(key) < 0, "please insert in order!");
         lastKey = key;
-            if (indexKeys != null && size % bucketSize == 0) {
-                long position = writer.total();
-                indexKeys.add(key);
-                indexPositions.add(position);
-            }
-            writer.writeAscii(key);
-            kryo.writeObject(writer, value);
-            size++;
+        if (indexKeys != null && size % bucketSize == 0) {
+            long position = writer.total();
+            indexKeys.add(key);
+            indexPositions.add(position);
+        }
+        writer.writeAscii(key);
+        kryo.writeObject(writer, value);
+        size++;
     }
 
     @Override

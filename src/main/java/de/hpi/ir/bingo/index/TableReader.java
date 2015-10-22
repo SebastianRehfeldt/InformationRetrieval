@@ -7,11 +7,11 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.google.common.collect.Maps;
 
-public class TableReader<T> implements AutoCloseable {
+final class TableReader<T> implements AutoCloseable {
 
     private final Input reader;
     private final Class<T> clazz;
-    private final Kryo kryo = new Kryo();
+    private final Kryo kryo = TableUtil.getKryo();
 
     public TableReader(Path file, Class<T> clazz) {
         this.clazz = clazz;

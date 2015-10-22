@@ -2,7 +2,6 @@ package de.hpi.ir.bingo.index;
 
 import static com.google.common.truth.Truth.assertThat;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.Rule;
@@ -12,7 +11,7 @@ import org.junit.rules.TemporaryFolder;
 import com.google.common.base.VerifyException;
 import com.google.common.collect.Maps;
 
-public class TableReaderWriterTest {
+public final class TableReaderWriterTest {
 
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();

@@ -1,9 +1,8 @@
 package de.hpi.ir.bingo;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
-
 import java.io.Serializable;
+
+import com.google.common.base.MoreObjects;
 
 public class PatentData implements Serializable{
 	private final int patentId;

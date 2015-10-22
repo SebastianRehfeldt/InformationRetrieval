@@ -4,7 +4,7 @@ import java.nio.file.Path;
 import java.util.Map;
 
 // TODO write tests!
-public class TableMerger {
+public final class TableMerger {
 
     public interface Mergeable<T> {
         /**

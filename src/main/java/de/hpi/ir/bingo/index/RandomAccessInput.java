@@ -6,7 +6,7 @@ import java.nio.channels.Channels;
 
 import com.esotericsoftware.kryo.io.Input;
 
-public class RandomAccessInput extends Input {
+final class RandomAccessInput extends Input {
 
     private final RandomAccessFile randomAccessFile;
 

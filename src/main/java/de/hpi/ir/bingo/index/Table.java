@@ -5,13 +5,13 @@ import java.nio.file.Path;
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 
-public class Table<T> implements AutoCloseable {
+public final class Table<T> implements AutoCloseable {
 
     public static final long MISSING_ENTRY = -1L;
     private final RandomAccessInput input;
     private final TableIndex index;
     private final Class<T> clazz;
-    private final Kryo kryo = new Kryo();
+    private final Kryo kryo = TableUtil.getKryo();
 
     private Table(RandomAccessInput input, TableIndex index, Class<T> clazz) {
         this.input = input;
@@ -42,7 +42,7 @@ public class Table<T> implements AutoCloseable {
     public static <T> Table<T> open(Path file, Class<T> clazz) {
         Path indexPath = TableUtil.getIndexPath(file);
         Input indexReader = TableUtil.createInput(indexPath);
-        TableIndex index = new Kryo().readObject(indexReader, TableIndex.class);
+        TableIndex index = TableUtil.getKryo().readObject(indexReader, TableIndex.class);
         indexReader.close();
         RandomAccessInput input = TableUtil.createInput(file);
         return new Table<>(input, index, clazz);
