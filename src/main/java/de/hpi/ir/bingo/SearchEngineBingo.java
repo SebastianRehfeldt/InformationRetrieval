@@ -5,6 +5,8 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
@@ -29,6 +31,7 @@ import com.google.common.collect.Lists;
  */
 public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with your search engine's name, i.e. SearchEngineMyTeamName
 
+	
 	public SearchEngineBingo() { // Replace 'Template' with your search engine's name, i.e. SearchEngineMyTeamName
 		// This should stay as is! Don't add anything here!
 		super();
@@ -85,6 +88,31 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 			System.out.printf("%d: %s\n", patent.getPatentId(), patent.getTitle());
 			System.out.println(tokenizeStopStem(new StringReader(patent.getAbstractText())));
 			// TODO build index
+			buildIndexForDocument(patent.getPatentId(),tokenizeStopStem(new StringReader(patent.getAbstractText())));
 		});
+	}
+	
+	void buildIndexForDocument(int patentId, List<String> stream){
+		Map<String, PostingListItem> index = new TreeMap<String, PostingListItem>();
+		int position = 0;
+		
+		for(String word : stream){
+			position ++;
+			if(index.containsKey(word)){
+				index.get(word).addPosition(position);
+			}
+			else{
+				index.put(word, new PostingListItem(patentId, position));
+			}
+		}	
+		//printDocumentIndices(index);
+	}
+	
+	void printDocumentIndices(Map<String, PostingListItem> index){
+		for(String key : index.keySet())
+	    {
+	      System.out.println("Word: " + key);
+	      index.get(key).print();
+	    }
 	}
 }
