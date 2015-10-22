@@ -24,7 +24,7 @@ public class PostingListItem {
 	}
 	
 	public void print(){
-		System.out.print("\t Patent: "+patentId+"\n \t Position: ");
+		System.out.print("\t Patent: "+patentId+"\n \t \t Position: ");
 		for(int position : positions){
 			System.out.print(position+", ");
 		}

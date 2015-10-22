@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
  */
 public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with your search engine's name, i.e. SearchEngineMyTeamName
 
+	private Map<String, List<PostingListItem>> index = new TreeMap<String, List<PostingListItem>>();
 	
 	public SearchEngineBingo() { // Replace 'Template' with your search engine's name, i.e. SearchEngineMyTeamName
 		// This should stay as is! Don't add anything here!
@@ -93,26 +94,49 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 	}
 	
 	void buildIndexForDocument(int patentId, List<String> stream){
-		Map<String, PostingListItem> index = new TreeMap<String, PostingListItem>();
+		Map<String, PostingListItem> docIndex = new TreeMap<String, PostingListItem>();
 		int position = 0;
 		
 		for(String word : stream){
 			position ++;
-			if(index.containsKey(word)){
-				index.get(word).addPosition(position);
+			if(docIndex.containsKey(word)){
+				docIndex.get(word).addPosition(position);
 			}
 			else{
-				index.put(word, new PostingListItem(patentId, position));
+				docIndex.put(word, new PostingListItem(patentId, position));
 			}
 		}	
-		//printDocumentIndices(index);
+		//printDocumentIndices(docIndex);
+		mergeDocIndexIntoMainIndex(docIndex);
 	}
 	
-	void printDocumentIndices(Map<String, PostingListItem> index){
-		for(String key : index.keySet())
+	void mergeDocIndexIntoMainIndex(Map<String, PostingListItem> docIndex){
+		for(String word : docIndex.keySet()){
+			if(index.containsKey(word)){
+				index.get(word).add(docIndex.get(word));
+			}
+			else{
+				List<PostingListItem> postingList = new ArrayList<PostingListItem>();
+				postingList.add(docIndex.get(word));
+				index.put(word, postingList);
+			}
+		}
+	}
+	
+	void printDocumentIndices(Map<String, PostingListItem> docIndex){
+		for(String key : docIndex.keySet())
 	    {
 	      System.out.println("Word: " + key);
-	      index.get(key).print();
+	      docIndex.get(key).print();
 	    }
+	}
+	
+	void printIndex(){
+		for(String key : index.keySet()){
+			System.out.println("Word: "+ key);
+			for(PostingListItem postingListItem : index.get(key)){
+				postingListItem.print();
+			}
+		}
 	}
 }

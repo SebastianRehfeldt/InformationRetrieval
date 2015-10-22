@@ -15,6 +15,7 @@ public class SearchEngineTest {
 
 		SearchEngineBingo myEngine = new SearchEngineBingo();
 		myEngine.printPatentTitles();
+		myEngine.printIndex();
 
 		// long start = System.currentTimeMillis();
 
