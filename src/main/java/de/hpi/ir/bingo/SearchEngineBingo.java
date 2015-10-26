@@ -31,7 +31,8 @@ import com.google.common.collect.Lists;
  */
 public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with your search engine's name, i.e. SearchEngineMyTeamName
 
-	private Map<String, List<PostingListItem>> index = new TreeMap<String, List<PostingListItem>>();
+	private Map<String, ArrayList<PostingListItem>> index = new TreeMap<String, ArrayList<PostingListItem>>();
+	private Map<Integer, PatentData> titleIndex = new TreeMap<Integer,PatentData>();
 	
 	public SearchEngineBingo() { // Replace 'Template' with your search engine's name, i.e. SearchEngineMyTeamName
 		// This should stay as is! Don't add anything here!
@@ -40,9 +41,56 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 
 	@Override
 	void index(String directory) {
+		String fileName = "res/testData.xml";
 
+		PatentHandler.parseXml(fileName, (patent) -> {
+			buildIndexForDocument(patent.getPatentId(),tokenizeStopStem(new StringReader(patent.getAbstractText())));
+			buildIndexForTitles(patent);
+		});
 	}
 
+	@Override
+	boolean loadIndex(String directory) {
+		return false;
+	}
+
+	@Override
+	void compressIndex(String directory) {
+	}
+
+	@Override
+	boolean loadCompressedIndex(String directory) {
+		return false;
+	}
+
+	@Override
+	ArrayList<String> search(String query, int topK, int prf) {
+		ArrayList<PostingListItem> postingList= new ArrayList<PostingListItem>();
+		ArrayList<String> titles = new ArrayList<String>();
+		List<String> processedQuery = tokenizeStopStem(new StringReader(query));
+		String title = "";
+					
+		//find the postinglist for each search term and concatenate the lists
+		for(String searchWord : processedQuery){
+			if(index.containsKey(searchWord)){
+				postingList.addAll(index.get(searchWord));
+			}
+		}
+		
+		//find for each postinglistitem the patent and retrieve the title of this patent
+		for(PostingListItem patent : postingList){
+			title = titleIndex.get(patent.getPatentId()).getTitle();
+			if(!titles.contains(title)){
+				titles.add(title);
+			}
+		}		
+		
+		return titles;
+	}
+	
+	
+	
+	//stopping and stemming
 	private List<String> tokenizeStopStem(Reader reader) {
 		Analyzer analyzer = new StandardAnalyzer();
 		try {
@@ -62,37 +110,10 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 			throw new RuntimeException(e);
 		}
 	}
-
-	@Override
-	boolean loadIndex(String directory) {
-		return false;
-	}
-
-	@Override
-	void compressIndex(String directory) {
-	}
-
-	@Override
-	boolean loadCompressedIndex(String directory) {
-		return false;
-	}
-
-	@Override
-	ArrayList<String> search(String query, int topK, int prf) {
-		return null;
-	}
-
-	void printPatentTitles() {
-		String fileName = "res/testData.xml";
-
-		PatentHandler.parseXml(fileName, (patent) -> {
-			System.out.printf("%d: %s\n", patent.getPatentId(), patent.getTitle());
-			System.out.println(tokenizeStopStem(new StringReader(patent.getAbstractText())));
-			// TODO build index
-			buildIndexForDocument(patent.getPatentId(),tokenizeStopStem(new StringReader(patent.getAbstractText())));
-		});
-	}
 	
+	
+	
+	//index creation
 	void buildIndexForDocument(int patentId, List<String> stream){
 		Map<String, PostingListItem> docIndex = new TreeMap<String, PostingListItem>();
 		int position = 0;
@@ -105,8 +126,7 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 			else{
 				docIndex.put(word, new PostingListItem(patentId, position));
 			}
-		}	
-		//printDocumentIndices(docIndex);
+		}
 		mergeDocIndexIntoMainIndex(docIndex);
 	}
 	
@@ -116,11 +136,27 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 				index.get(word).add(docIndex.get(word));
 			}
 			else{
-				List<PostingListItem> postingList = new ArrayList<PostingListItem>();
+				ArrayList<PostingListItem> postingList = new ArrayList<PostingListItem>();
 				postingList.add(docIndex.get(word));
 				index.put(word, postingList);
 			}
 		}
+	}
+	
+	void buildIndexForTitles(PatentData patent) {
+		titleIndex.put(patent.getPatentId(), patent);		
+	}
+	
+	
+
+	//printing
+	void printPatentTitles() {
+		String fileName = "res/testData.xml";
+
+		PatentHandler.parseXml(fileName, (patent) -> {
+			System.out.printf("%d: %s\n", patent.getPatentId(), patent.getTitle());
+			System.out.println(tokenizeStopStem(new StringReader(patent.getAbstractText())));
+		});
 	}
 	
 	void printDocumentIndices(Map<String, PostingListItem> docIndex){

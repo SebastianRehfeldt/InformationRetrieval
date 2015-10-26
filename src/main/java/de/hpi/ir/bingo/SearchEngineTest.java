@@ -1,7 +1,9 @@
 package de.hpi.ir.bingo;
 
+import java.util.ArrayList;
+
 /**
- * @author: Your team name
+ * @author: Bingo
  * @dataset: US patent grants : ipg files from http://www.google.com/googlebooks/uspto-patents-grants-text.html
  * @course: Information Retrieval and Web Search, Hasso-Plattner Institut, 2015
  *
@@ -14,25 +16,30 @@ public class SearchEngineTest {
 	public static void main(String args[]) throws Exception {
 
 		SearchEngineBingo myEngine = new SearchEngineBingo();
-		myEngine.printPatentTitles();
-		myEngine.printIndex();
+		
+		long start = System.currentTimeMillis();
 
-		// long start = System.currentTimeMillis();
+		myEngine.index(""); //String directory
 
-		// myEngine.index(String directory)
+		long time = System.currentTimeMillis() - start;
 
-		// long time = System.currentTimeMillis() - start;
-
-		// System.out.print("Indexing Time:\t" + time + "\tms\n");
+		System.out.print("Indexing Time:\t" + time + "\tms\n");
 
 		// myEngine.loadIndex(String directory)
 
-		// String query = "";
+		String query = "write";
 
-		// ArrayList <String> results = new ArrayList <> ();
+		ArrayList <String> results = new ArrayList <> ();
 
-		// results = myEngine.search(String query, int topK, int prf)
+		start = System.currentTimeMillis();
 
+		results = myEngine.search(query, 0, 0); //topK, prf
+
+		time = System.currentTimeMillis() - start;
+		
+		System.out.print("Searching Time:\t" + time + "\tms\n");
+		
+		System.out.println(results);
 	}
 
 }
