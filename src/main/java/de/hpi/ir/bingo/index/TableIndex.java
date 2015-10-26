@@ -8,6 +8,9 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.base.Preconditions;
 
+/**
+ * TODO!
+ */
 final class TableIndex {
     private final String[] keys;
     private final long[] positions;

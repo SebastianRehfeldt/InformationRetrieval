@@ -27,7 +27,11 @@ public final class TableWriter<T> implements AutoCloseable {
 
     private long lastIndexPos;
 
-    public TableWriter(Path file, boolean createIndex, int blockSize) {
+	public TableWriter(Path file, boolean createIndex) {
+		this(file, createIndex, 4096);
+	}
+
+    TableWriter(Path file, boolean createIndex, int blockSize) {
         this.blockSize = blockSize;
         lastIndexPos = -blockSize;
         this.createIndex = createIndex;
@@ -58,6 +62,13 @@ public final class TableWriter<T> implements AutoCloseable {
         }
     }
 
+	public void writeMap(Map<String, T> index) {
+		List<Map.Entry<String, T>> data = new ArrayList<>(index.entrySet());
+		data.sort(Map.Entry.comparingByKey());
+		for (Map.Entry<String, T> entry : data) {
+			put(entry.getKey(), entry.getValue());
+		}
+	}
     @Override
     public void close() {
         if (indexKeys != null) {
@@ -69,11 +80,5 @@ public final class TableWriter<T> implements AutoCloseable {
         writer.close();
     }
 
-    public void writeMap(Map<String, T> index) {
-        List<Map.Entry<String, T>> data = new ArrayList<>(index.entrySet());
-        data.sort(Map.Entry.comparingByKey());
-        for (Map.Entry<String, T> entry : data) {
-            put(entry.getKey(), entry.getValue());
-        }
-    }
+
 }

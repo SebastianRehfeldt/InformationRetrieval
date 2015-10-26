@@ -26,11 +26,11 @@ public class SearchEngineIndexer {
             patents.put(Integer.toString(patent.getPatentId()), patent);
         });
 
-        TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, "index"), true, 4096);
+        TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, "index"), true);
         indexWriter.writeMap(index);
         indexWriter.close();
 
-        TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents"),true, 4096);
+        TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents"),true);
         patentWriter.writeMap(patents);
         patentWriter.close();
     }
