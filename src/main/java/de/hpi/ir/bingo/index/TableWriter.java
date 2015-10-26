@@ -2,12 +2,16 @@ package de.hpi.ir.bingo.index;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.base.Verify;
 import com.google.common.collect.Lists;
 import com.google.common.primitives.Longs;
+
+import de.hpi.ir.bingo.PostingListItem;
 
 public final class TableWriter<T> implements AutoCloseable {
 
@@ -63,5 +67,13 @@ public final class TableWriter<T> implements AutoCloseable {
             indexWriter.close();
         }
         writer.close();
+    }
+
+    public void writeMap(Map<String, T> index) {
+        List<Map.Entry<String, T>> data = new ArrayList<>(index.entrySet());
+        data.sort(Map.Entry.comparingByKey());
+        for (Map.Entry<String, T> entry : data) {
+            put(entry.getKey(), entry.getValue());
+        }
     }
 }

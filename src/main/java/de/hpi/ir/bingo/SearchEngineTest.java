@@ -27,6 +27,7 @@ public class SearchEngineTest {
 
 		// myEngine.loadIndex(String directory)
 
+		myEngine.loadIndex("");
 		String query = "write";
 
 		ArrayList <String> results = new ArrayList <> ();

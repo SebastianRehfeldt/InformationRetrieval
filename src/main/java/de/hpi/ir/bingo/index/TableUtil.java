@@ -5,9 +5,14 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
+
+import de.hpi.ir.bingo.PatentData;
+import de.hpi.ir.bingo.PostingList;
+import de.hpi.ir.bingo.PostingListItem;
 
 final class TableUtil {
 
@@ -36,6 +41,10 @@ final class TableUtil {
             Kryo kryo = new Kryo();
             kryo.setReferences(false);
             kryo.setRegistrationRequired(true);
+            kryo.register(PostingList.class);
+            kryo.register(PostingListItem.class);
+            kryo.register(PatentData.class);
+            kryo.register(ArrayList.class);
             kryo.register(TableIndex.class, new TableIndex.TableIndexSerializer());
             return kryo;
         }
