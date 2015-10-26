@@ -14,7 +14,7 @@ public final class TableMerger {
     }
 
     public static <T> void merge(Path merged, Path file1, Path file2, Class<Mergeable<T>> clazz) {
-        TableWriter<Mergeable<T>> writer = new TableWriter<>(merged, 1, false);
+        TableWriter<Mergeable<T>> writer = new TableWriter<>(merged, false, 4096);
         TableReader<Mergeable<T>> reader1 = new TableReader<>(file1, clazz);
         TableReader<Mergeable<T>> reader2 = new TableReader<>(file2, clazz);
 

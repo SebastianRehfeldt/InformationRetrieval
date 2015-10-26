@@ -21,7 +21,7 @@ public final class TableReaderWriterTest {
     public void testReadNext() throws Exception {
         Path tmpFile = folder.newFile().toPath();
 
-        TableWriter<String> writer = new TableWriter<>(tmpFile, 1, false);
+        TableWriter<String> writer = new TableWriter<>(tmpFile, false, 1);
         writer.put("k1", "v1");
         writer.put("k2", "v2");
         writer.close();
@@ -37,7 +37,7 @@ public final class TableReaderWriterTest {
     @Test(expected = VerifyException.class)
     public void testWriterChecksOrder() throws Exception {
         Path tmpFile = folder.newFile().toPath();
-        try(TableWriter<String> writer = new TableWriter<>(tmpFile, 1, false)) {
+        try(TableWriter<String> writer = new TableWriter<>(tmpFile, false, 1)) {
             writer.put("k2", "v1");
             writer.put("k1", "v2");
         }

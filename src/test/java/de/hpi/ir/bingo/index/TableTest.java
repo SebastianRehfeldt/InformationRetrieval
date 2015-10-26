@@ -22,7 +22,7 @@ public final class TableTest {
     public void testIndexCreation() throws IOException {
         Path tmpFile = folder.newFile().toPath();
 
-        TableWriter<String> writer = new TableWriter<>(tmpFile, 1, true);
+        TableWriter<String> writer = new TableWriter<>(tmpFile, true, 1);
         writer.put("k1", "v1");
         writer.put("k2", "v2");
         writer.close();
@@ -39,7 +39,7 @@ public final class TableTest {
     public void testIndexCreationWithBuckets() throws IOException {
         Path tmpFile = folder.newFile().toPath();
 
-        TableWriter<String> writer = new TableWriter<>(tmpFile, 3, true);
+        TableWriter<String> writer = new TableWriter<>(tmpFile, true, 4096);
         writer.put("k1", "v1");
         writer.put("k2", "v2");
         writer.put("k3", "v3");
@@ -64,18 +64,18 @@ public final class TableTest {
 
         int insertCount = 100_000;
         int getCount = 100_000;
-        int bucketSize = 5;
+        int blockSize = 4096;
 
         String value = "QWERTZUPASDFGHJKLYXCVBNMQWERTZUIOPASDFGHJKLASDASDASDASDASDASDASD";
         Stopwatch sw = Stopwatch.createStarted();
-        TableWriter<String> writer = new TableWriter<>(tmpFile, bucketSize, true);
+        TableWriter<String> writer = new TableWriter<>(tmpFile, true, blockSize);
         for (int i = 0; i < insertCount; i++) {
             writer.put(String.format("key-%10d", i), value + i);
         }
         writer.close();
         System.out.println("writing table and index: " + sw);
         System.out.println("Table size: " + tmpFile.toFile().length() / 1000_000 + "MB");
-        System.out.println("Index size: " + TableUtil.getIndexPath(tmpFile).toFile().length() / 1000_000 + "MB");
+        System.out.println("Index size: " + TableUtil.getIndexPath(tmpFile).toFile().length() / 1000 + "KB");
 
         sw.reset().start();
         Table<String> table = Table.open(tmpFile, String.class);

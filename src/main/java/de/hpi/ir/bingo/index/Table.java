@@ -7,7 +7,6 @@ import com.esotericsoftware.kryo.io.Input;
 
 public final class Table<T> implements AutoCloseable {
 
-    public static final long MISSING_ENTRY = -1L;
     private final RandomAccessInput input;
     private final TableIndex index;
     private final Class<T> clazz;
@@ -20,15 +19,10 @@ public final class Table<T> implements AutoCloseable {
     }
 
     public T get(String key) {
-        int position = (int) index.getPosition(key);
-        if (position == MISSING_ENTRY) {
-            return null;
-        }
-        input.setStreamPosition(position);
-        for (int i = 0; i < index.getBucketSize(); i++) {
-            if (!input.canReadInt()) {
-                return null;
-            }
+        TableIndex.Range range = index.getRange(key);
+        int blockSize = (int) (range.to - range.from);
+        input.setStreamPosition(range.from);
+        while (input.total() < blockSize) {
             String currentKey = input.readString();
             if (key.equals(currentKey)) {
                 return kryo.readObject(input, clazz);

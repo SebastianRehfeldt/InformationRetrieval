@@ -13,18 +13,22 @@ public final class TableWriter<T> implements AutoCloseable {
 
     private final Output writer;
     private final Output indexWriter;
+    private final boolean createIndex;
     private String lastKey = null;
 
     private final ArrayList<String> indexKeys;
     private final ArrayList<Long> indexPositions;
-    private final int bucketSize;
-    private int size;
+    private final int blockSize;
     private final Kryo kryo = TableUtil.getKryo();
 
-    public TableWriter(Path file, int bucketSize, boolean createIndex) {
-        this.bucketSize = bucketSize;
-        this.size = 0;
-        writer = TableUtil.createOutput(file);
+    private long lastIndexPos;
+
+    public TableWriter(Path file, boolean createIndex, int blockSize) {
+        this.blockSize = blockSize;
+        lastIndexPos = -blockSize;
+        this.createIndex = createIndex;
+        this.writer = TableUtil.createOutput(file);
+
         if (createIndex) {
             indexKeys = Lists.newArrayList();
             indexPositions = Lists.newArrayList();
@@ -40,20 +44,21 @@ public final class TableWriter<T> implements AutoCloseable {
         Verify.verifyNotNull(key);
         Verify.verify(lastKey == null || lastKey.compareTo(key) < 0, "please insert in order!");
         lastKey = key;
-        if (indexKeys != null && size % bucketSize == 0) {
-            long position = writer.total();
-            indexKeys.add(key);
-            indexPositions.add(position);
-        }
+        long position = writer.total();
         writer.writeAscii(key);
         kryo.writeObject(writer, value);
-        size++;
+        if (createIndex && writer.total() - lastIndexPos > blockSize) {
+            indexKeys.add(key);
+            indexPositions.add(position);
+            lastIndexPos = position;
+        }
     }
 
     @Override
     public void close() {
         if (indexKeys != null) {
-            TableIndex index = new TableIndex(indexKeys.toArray(new String[indexKeys.size()]), Longs.toArray(indexPositions), bucketSize);
+            indexPositions.add(writer.total()); // store length of file
+            TableIndex index = new TableIndex(indexKeys.toArray(new String[indexKeys.size()]), Longs.toArray(indexPositions));
             kryo.writeObject(indexWriter, index);
             indexWriter.close();
         }
