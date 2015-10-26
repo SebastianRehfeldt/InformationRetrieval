@@ -1,10 +1,17 @@
 package de.hpi.ir.bingo;
 
-import java.util.ArrayList;
+import com.google.common.base.Objects;
 
-public class PostingListItem {
-	private int patentId;
-	private ArrayList<Integer> positions = new ArrayList<Integer>();
+import java.util.ArrayList;
+import java.util.List;
+
+public final class PostingListItem {
+	private final int patentId;
+	private final List<Integer> positions = new ArrayList<>();
+
+	private PostingListItem() {
+		this(-1, -1);
+	}
 
 	public PostingListItem(int patentId, int position){
 		this.patentId = patentId;
@@ -19,7 +26,7 @@ public class PostingListItem {
 		return patentId;
 	}	
 	
-	public ArrayList<Integer> getPositions(){
+	public List<Integer> getPositions(){
 		return positions;
 	}
 	
@@ -30,5 +37,18 @@ public class PostingListItem {
 		}
 		System.out.println("");
 	}
-	
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		PostingListItem that = (PostingListItem) o;
+		return Objects.equal(patentId, that.patentId) &&
+				Objects.equal(positions, that.positions);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(patentId, positions);
+	}
 }

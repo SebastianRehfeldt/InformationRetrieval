@@ -9,6 +9,10 @@ public class PatentData implements Serializable{
 	private final String title;
 	private final String abstractText;
 
+	private PatentData() {
+		this(-1, "", "");
+	}
+
 	public PatentData(int patentId, String title, String abstractText) {
 		this.patentId = patentId;
 		this.title = title;

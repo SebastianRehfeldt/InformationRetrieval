@@ -27,7 +27,7 @@ public final class Table<T> implements AutoCloseable {
             if (key.equals(currentKey)) {
                 return kryo.readObject(input, clazz);
             } else {
-                kryo.readObject(input, String.class); // skip this
+                kryo.readObject(input, clazz); // skip this
             }
         }
         return null;
