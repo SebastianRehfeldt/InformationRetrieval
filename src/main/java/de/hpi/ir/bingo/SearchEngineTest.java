@@ -16,7 +16,7 @@ public class SearchEngineTest {
 	public static void main(String args[]) throws Exception {
 
 		SearchEngineBingo myEngine = new SearchEngineBingo();
-		
+
 		long start = System.currentTimeMillis();
 
 		myEngine.index(""); //String directory
@@ -30,16 +30,16 @@ public class SearchEngineTest {
 		myEngine.loadIndex("");
 		String query = "write";
 
-		ArrayList <String> results = new ArrayList <> ();
+		ArrayList<String> results = new ArrayList<>();
 
 		start = System.currentTimeMillis();
 
 		results = myEngine.search(query, 0, 0); //topK, prf
 
 		time = System.currentTimeMillis() - start;
-		
+
 		System.out.print("Searching Time:\t" + time + "\tms\n");
-		
+
 		System.out.println(results);
 	}
 

@@ -13,27 +13,27 @@ public final class PostingListItem {
 		this(-1, -1);
 	}
 
-	public PostingListItem(int patentId, int position){
+	public PostingListItem(int patentId, int position) {
 		this.patentId = patentId;
 		this.positions.add(position);
 	}
-	
-	public void addPosition(int position){
+
+	public void addPosition(int position) {
 		positions.add(position);
 	}
-	
-	public int getPatentId(){
+
+	public int getPatentId() {
 		return patentId;
-	}	
-	
-	public List<Integer> getPositions(){
+	}
+
+	public List<Integer> getPositions() {
 		return positions;
 	}
-	
-	public void print(){
-		System.out.print("\t Patent: "+patentId+"\n \t \t Position: ");
-		for(int position : positions){
-			System.out.print(position+", ");
+
+	public void print() {
+		System.out.print("\t Patent: " + patentId + "\n \t \t Position: ");
+		for (int position : positions) {
+			System.out.print(position + ", ");
 		}
 		System.out.println("");
 	}

@@ -1,10 +1,10 @@
 package de.hpi.ir.bingo;
 
-import java.io.Serializable;
-
 import com.google.common.base.MoreObjects;
 
-public class PatentData implements Serializable{
+import java.io.Serializable;
+
+public class PatentData implements Serializable {
 	private final int patentId;
 	private final String title;
 	private final String abstractText;
@@ -34,8 +34,8 @@ public class PatentData implements Serializable{
 	@Override
 	public String toString() {
 		return MoreObjects.toStringHelper(this)
-						.add("patentId", patentId)
-						.add("title", title)
-						.toString();
+				.add("patentId", patentId)
+				.add("title", title)
+				.toString();
 	}
 }

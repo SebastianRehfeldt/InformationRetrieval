@@ -1,17 +1,17 @@
 package de.hpi.ir.bingo;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Stack;
-import java.util.function.Consumer;
-
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.Stack;
+import java.util.function.Consumer;
 
 public class PatentHandler extends DefaultHandler {
 
@@ -20,6 +20,10 @@ public class PatentHandler extends DefaultHandler {
 	private StringBuilder currentId;
 	private StringBuilder currentAbstract;
 	private Consumer<PatentData> patentComsumer;
+
+	private PatentHandler(Consumer<PatentData> patentComsumer) {
+		this.patentComsumer = patentComsumer;
+	}
 
 	public static void parseXml(String fileName, Consumer<PatentData> patentComsumer) {
 		try {
@@ -34,10 +38,6 @@ public class PatentHandler extends DefaultHandler {
 		} catch (SAXException | IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	private PatentHandler(Consumer<PatentData> patentComsumer) {
-		this.patentComsumer = patentComsumer;
 	}
 
 	@Override
