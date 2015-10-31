@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import com.google.common.primitives.Longs;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Output;
 
 import java.nio.file.Path;
@@ -20,16 +21,20 @@ public final class TableWriter<T> implements AutoCloseable {
 	private final ArrayList<String> indexKeys;
 	private final ArrayList<Long> indexPositions;
 	private final int blockSize;
+	private final Class<T> clazz;
+	private final Serializer<T> serializer;
 	private final Kryo kryo = TableUtil.getKryo();
 	private String lastKey = null;
 	private long lastIndexPos;
 
-	public TableWriter(Path file, boolean createIndex) {
-		this(file, createIndex, 4096);
+	public TableWriter(Path file, boolean createIndex, Class<T> clazz, Serializer<T> serializer) {
+		this(file, createIndex, 4096, clazz, serializer);
 	}
 
-	TableWriter(Path file, boolean createIndex, int blockSize) {
+	TableWriter(Path file, boolean createIndex, int blockSize, Class<T> clazz, Serializer<T> serializer) {
 		this.blockSize = blockSize;
+		this.clazz = clazz;
+		this.serializer = TableUtil.getDefaultSerializerIfNull(serializer, clazz);
 		lastIndexPos = -blockSize;
 		this.createIndex = createIndex;
 		this.writer = TableUtil.createOutput(file);
@@ -51,7 +56,7 @@ public final class TableWriter<T> implements AutoCloseable {
 		lastKey = key;
 		long position = writer.total();
 		writer.writeAscii(key);
-		kryo.writeObject(writer, value);
+		kryo.writeObject(writer, value, serializer);
 		if (createIndex && writer.total() - lastIndexPos > blockSize) {
 			indexKeys.add(key);
 			indexPositions.add(position);

@@ -32,23 +32,27 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 	@Override
 	void index(String directory) {
 		String fileName = "res/testData.xml";
-		new SearchEngineIndexer().createIndex(fileName, directory);
+		new SearchEngineIndexer().createIndex(fileName, directory, "index", PostingList.NORMAL_SERIALIZER);
 	}
 
 	@Override
 	boolean loadIndex(String directory) {
-		index = Table.open(Paths.get(directory, "index"), PostingList.class);
-		titleIndex = Table.open(Paths.get(directory, "patents"), PatentData.class);
+		index = Table.open(Paths.get(directory, "index"), PostingList.class, PostingList.NORMAL_SERIALIZER);
+		titleIndex = Table.open(Paths.get(directory, "patents"), PatentData.class, null);
 		return true;
 	}
 
 	@Override
 	void compressIndex(String directory) {
+		String fileName = "res/testData.xml";
+		new SearchEngineIndexer().createIndex(fileName, directory, "compressed-index", PostingList.COMPRESSING_SERIALIZER);
 	}
 
 	@Override
 	boolean loadCompressedIndex(String directory) {
-		return false;
+		index = Table.open(Paths.get(directory, "compressed-index"), PostingList.class, PostingList.COMPRESSING_SERIALIZER);
+		titleIndex = Table.open(Paths.get(directory, "patents"), PatentData.class, null);
+		return true;
 	}
 
 	@Override

@@ -22,12 +22,12 @@ public final class TableTest {
     public void testIndexCreation() throws IOException {
         Path tmpFile = folder.newFile().toPath();
 
-        TableWriter<String> writer = new TableWriter<>(tmpFile, true, 1);
+        TableWriter<String> writer = new TableWriter<>(tmpFile, true, 1, String.class, null);
         writer.put("k1", "v1");
         writer.put("k2", "v2");
         writer.close();
 
-        Table<String> table = Table.open(tmpFile, String.class);
+        Table<String> table = Table.open(tmpFile, String.class, null);
         assertThat(table.get("k2")).isEqualTo("v2");
         assertThat(table.get("k1")).isEqualTo("v1");
         assertThat(table.get("k11")).isNull();
@@ -39,7 +39,7 @@ public final class TableTest {
     public void testIndexCreationWithBuckets() throws IOException {
         Path tmpFile = folder.newFile().toPath();
 
-        TableWriter<String> writer = new TableWriter<>(tmpFile, true, 4096);
+        TableWriter<String> writer = new TableWriter<>(tmpFile, true, 4096, String.class, null);
         writer.put("k1", "v1");
         writer.put("k2", "v2");
         writer.put("k3", "v3");
@@ -47,7 +47,7 @@ public final class TableTest {
         writer.put("k5", "v5");
         writer.close();
 
-        Table<String> table = Table.open(tmpFile, String.class);
+        Table<String> table = Table.open(tmpFile, String.class, null);
         assertThat(table.get("k1")).isEqualTo("v1");
         assertThat(table.get("k2")).isEqualTo("v2");
         assertThat(table.get("k22")).isNull();
@@ -68,7 +68,7 @@ public final class TableTest {
 
         String value = "QWERTZUPASDFGHJKLYXCVBNMQWERTZUIOPASDFGHJKLASDASDASDASDASDASDASD";
         Stopwatch sw = Stopwatch.createStarted();
-        TableWriter<String> writer = new TableWriter<>(tmpFile, true, blockSize);
+        TableWriter<String> writer = new TableWriter<>(tmpFile, true, blockSize, String.class, null);
         for (int i = 0; i < insertCount; i++) {
             writer.put(String.format("key-%10d", i), value + i);
         }
@@ -78,7 +78,7 @@ public final class TableTest {
         System.out.println("Index size: " + TableUtil.getIndexPath(tmpFile).toFile().length() / 1000 + "KB");
 
         sw.reset().start();
-        Table<String> table = Table.open(tmpFile, String.class);
+        Table<String> table = Table.open(tmpFile, String.class, null);
         System.out.println("reading index: " + sw);
         sw.reset().start();
         Random random = new Random(42);

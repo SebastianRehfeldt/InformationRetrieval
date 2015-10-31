@@ -2,20 +2,27 @@ package de.hpi.ir.bingo;
 
 import com.google.common.base.Objects;
 
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public final class PostingListItem {
 	private final int patentId;
-	private final List<Integer> positions = new ArrayList<>();
+	private final IntArrayList positions;
 
-	private PostingListItem() {
-		this(-1, -1);
-	}
+	/*private PostingListItem() {
+		this(-1, new IntArrayList());
+	}*/
 
 	public PostingListItem(int patentId, int position) {
-		this.patentId = patentId;
+		this(patentId,  new IntArrayList());
 		this.positions.add(position);
+	}
+
+	public PostingListItem(int id, IntArrayList posList) {
+		this.patentId = id;
+		this.positions = posList;
 	}
 
 	public void addPosition(int position) {
@@ -26,7 +33,7 @@ public final class PostingListItem {
 		return patentId;
 	}
 
-	public List<Integer> getPositions() {
+	public IntArrayList getPositions() {
 		return positions;
 	}
 

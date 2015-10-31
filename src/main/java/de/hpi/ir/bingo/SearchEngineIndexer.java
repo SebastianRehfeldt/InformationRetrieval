@@ -2,6 +2,8 @@ package de.hpi.ir.bingo;
 
 import com.google.common.collect.Maps;
 
+import com.esotericsoftware.kryo.Serializer;
+
 import de.hpi.ir.bingo.index.TableWriter;
 
 import java.io.StringReader;
@@ -13,7 +15,7 @@ import java.util.Map;
 public class SearchEngineIndexer {
 	private SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
 
-	public void createIndex(String fileName, String directory) {
+	public void createIndex(String fileName, String directory, String indexName, Serializer<PostingList> serializer) {
 
 		Map<String, PostingList> index = Maps.newHashMap();
 		Map<String, PatentData> patents = Maps.newHashMap();
@@ -24,11 +26,11 @@ public class SearchEngineIndexer {
 			patents.put(Integer.toString(patent.getPatentId()), patent);
 		});
 
-		TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, "index"), true);
+		TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, indexName), true, PostingList.class, serializer);
 		indexWriter.writeMap(index);
 		indexWriter.close();
 
-		TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents"), true);
+		TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents"), true, PatentData.class, null);
 		patentWriter.writeMap(patents);
 		patentWriter.close();
 	}

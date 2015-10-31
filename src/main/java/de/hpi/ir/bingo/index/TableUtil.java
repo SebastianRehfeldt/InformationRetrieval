@@ -1,6 +1,7 @@
 package de.hpi.ir.bingo.index;
 
 import com.esotericsoftware.kryo.Kryo;
+import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Output;
 
 import de.hpi.ir.bingo.PatentData;
@@ -14,17 +15,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
-final class TableUtil {
+public final class TableUtil {
 
 	private static final ThreadLocal<Kryo> kryos = new ThreadLocal<Kryo>() {
 		protected Kryo initialValue() {
 			Kryo kryo = new Kryo();
 			kryo.setReferences(false);
 			kryo.setRegistrationRequired(true);
-			kryo.register(PostingList.class);
-			kryo.register(PostingListItem.class);
-			kryo.register(PatentData.class);
-			kryo.register(ArrayList.class);
+			//kryo.register(PostingList.class, new PostingList.PostingListSerializer());
+			kryo.register(PatentData.class, new PatentData.PatentDataSerializer());
 			kryo.register(TableIndex.class, new TableIndex.TableIndexSerializer());
 			return kryo;
 		}
@@ -34,7 +33,7 @@ final class TableUtil {
 		return Paths.get(file.toString() + ".index");
 	}
 
-	static Output createOutput(Path file) {
+	public static Output createOutput(Path file) {
 		try {
 			return new Output(Files.newOutputStream(file));
 		} catch (IOException e) {
@@ -42,7 +41,7 @@ final class TableUtil {
 		}
 	}
 
-	static RandomAccessInput createInput(Path file) {
+	public static RandomAccessInput createInput(Path file) {
 		try {
 			return new RandomAccessInput(new RandomAccessFile(file.toFile(), "r"));
 		} catch (IOException e) {
@@ -50,8 +49,15 @@ final class TableUtil {
 		}
 	}
 
-	static Kryo getKryo() {
+	public static Kryo getKryo() {
 		return kryos.get();
 	}
 
+	public static <T> Serializer<T> getDefaultSerializerIfNull(Serializer<T> serializer, Class<T> clazz) {
+		if (serializer == null){
+			return getKryo().getSerializer(clazz);
+		} else {
+			return serializer;
+		}
+	}
 }

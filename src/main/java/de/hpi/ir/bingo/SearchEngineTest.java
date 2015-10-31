@@ -12,6 +12,7 @@ import java.util.ArrayList;
  */
 public class SearchEngineTest {
 
+	private static final boolean COMPRESS = false;
 
 	public static void main(String args[]) throws Exception {
 
@@ -19,7 +20,10 @@ public class SearchEngineTest {
 
 		long start = System.currentTimeMillis();
 
-		myEngine.index(""); //String directory
+		if(COMPRESS)
+			myEngine.compressIndex(""); //String directory
+		else
+			myEngine.index("");
 
 		long time = System.currentTimeMillis() - start;
 
@@ -27,7 +31,11 @@ public class SearchEngineTest {
 
 		// myEngine.loadIndex(String directory)
 
-		myEngine.loadIndex("");
+		if (COMPRESS)
+			myEngine.loadCompressedIndex("");
+		else
+			myEngine.loadIndex("");
+
 		String query = "write";
 
 		ArrayList<String> results = new ArrayList<>();

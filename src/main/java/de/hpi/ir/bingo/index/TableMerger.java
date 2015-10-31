@@ -1,15 +1,17 @@
 package de.hpi.ir.bingo.index;
 
+import com.esotericsoftware.kryo.Serializer;
+
 import java.nio.file.Path;
 import java.util.Map;
 
 // TODO write tests!
 public final class TableMerger {
 
-	public static <T> void merge(Path merged, Path file1, Path file2, Class<Mergeable<T>> clazz) {
-		TableWriter<Mergeable<T>> writer = new TableWriter<>(merged, false, 4096);
-		TableReader<Mergeable<T>> reader1 = new TableReader<>(file1, clazz);
-		TableReader<Mergeable<T>> reader2 = new TableReader<>(file2, clazz);
+	public static <T> void merge(Path merged, Path file1, Path file2, Class<Mergeable<T>> clazz, Serializer<Mergeable<T>> serializer) {
+		TableWriter<Mergeable<T>> writer = new TableWriter<>(merged, false, 4096, clazz, serializer);
+		TableReader<Mergeable<T>> reader1 = new TableReader<>(file1, clazz, serializer);
+		TableReader<Mergeable<T>> reader2 = new TableReader<>(file2, clazz, serializer);
 
 		Map.Entry<String, Mergeable<T>> entry1 = reader1.readNext();
 		Map.Entry<String, Mergeable<T>> entry2 = reader2.readNext();
