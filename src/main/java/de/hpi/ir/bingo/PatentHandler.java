@@ -10,8 +10,13 @@ import org.xml.sax.helpers.XMLReaderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.Enumeration;
 import java.util.Stack;
 import java.util.function.Consumer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class PatentHandler extends DefaultHandler {
 
@@ -19,6 +24,7 @@ public class PatentHandler extends DefaultHandler {
 	private StringBuilder currentTitle;
 	private StringBuilder currentId;
 	private StringBuilder currentAbstract;
+	private String currentApplType;
 	private Consumer<PatentData> patentComsumer;
 
 	private PatentHandler(Consumer<PatentData> patentComsumer) {
@@ -27,14 +33,27 @@ public class PatentHandler extends DefaultHandler {
 
 	public static void parseXml(String fileName, Consumer<PatentData> patentComsumer) {
 		try {
+
 			XMLReader xr = XMLReaderFactory.createXMLReader();
 
 			PatentHandler handler = new PatentHandler(patentComsumer);
 			xr.setContentHandler(handler);
 			xr.setErrorHandler(handler);
+			xr.setEntityResolver(handler);
 
-			FileReader r = new FileReader(fileName);
-			xr.parse(new InputSource(r));
+
+			if (fileName.endsWith(".zip")) {
+				ZipFile zipFile = new ZipFile(fileName);
+				Enumeration<? extends ZipEntry> entries = zipFile.entries();
+				while (entries.hasMoreElements()) {
+					ZipEntry zipEntry = entries.nextElement();
+					Reader r = new InputStreamReader(zipFile.getInputStream(zipEntry));
+					xr.parse(new InputSource(r));
+				}
+			} else {
+				Reader r = new FileReader(fileName);
+				xr.parse(new InputSource(r));
+			}
 		} catch (SAXException | IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -54,19 +73,25 @@ public class PatentHandler extends DefaultHandler {
 
 	@Override
 	public void startElement(String uri, String name, String qName, Attributes atts) {
+		if (name.equals("application-reference")) {
+			currentApplType = atts.getValue("appl-type");
+		}
 		parents.push(qName);
 	}
 
 	@Override
 	public void endElement(String uri, String name, String qName) {
 		if (qName.equals("us-patent-grant")) {
-			int id = Integer.parseInt(currentId.toString());
-			String title = currentTitle.toString().replaceAll("\\s+", " "); // remove duplicate whitespace
-			String abstractText = currentAbstract.toString().replaceAll("\\s+", " ");
-			patentComsumer.accept(new PatentData(id, title, abstractText));
+			if (currentApplType.equals("utility")) {
+				int id = Integer.parseInt(currentId.toString());
+				String title = currentTitle.toString().replaceAll("\\s+", " "); // remove duplicate whitespace
+				String abstractText = currentAbstract.toString().replaceAll("\\s+", " ");
+				patentComsumer.accept(new PatentData(id, title, abstractText));
+			}
 			currentId.setLength(0);
 			currentTitle.setLength(0);
 			currentAbstract.setLength(0);
+			currentApplType = "";
 		}
 		parents.pop();
 	}

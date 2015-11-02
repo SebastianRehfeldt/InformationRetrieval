@@ -1,12 +1,15 @@
 package de.hpi.ir.bingo;
 
 import de.hpi.ir.bingo.index.Table;
+import de.hpi.ir.bingo.index.TableReader;
+import de.hpi.ir.bingo.index.TableWriter;
 
 import java.io.StringReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 
@@ -32,6 +35,7 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 	@Override
 	void index(String directory) {
 		String fileName = "res/testData.xml";
+		//String fileName = "compressed_patents/ipg150106.fixed.zip";
 		new SearchEngineIndexer().createIndex(fileName, directory, "index", PostingList.NORMAL_SERIALIZER);
 	}
 
@@ -44,8 +48,16 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 
 	@Override
 	void compressIndex(String directory) {
-		String fileName = "res/testData.xml";
-		new SearchEngineIndexer().createIndex(fileName, directory, "compressed-index", PostingList.COMPRESSING_SERIALIZER);
+		TableReader<PostingList> reader = new TableReader<>(Paths.get(directory, "index"), PostingList.class,
+				PostingList.NORMAL_SERIALIZER);
+		TableWriter<PostingList> writer = new TableWriter<>(Paths.get(directory, "compressed-index"), true,
+				PostingList.class, PostingList.COMPRESSING_SERIALIZER);
+		Map.Entry<String, PostingList> posting;
+		while((posting = reader.readNext()) != null) {
+			writer.put(posting.getKey(), posting.getValue());
+		}
+		reader.close();
+		writer.close();
 	}
 
 	@Override

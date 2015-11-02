@@ -12,7 +12,9 @@ import java.util.ArrayList;
  */
 public class SearchEngineTest {
 
-	private static final boolean COMPRESS = false;
+	private static final boolean CREATE_INDEX = true;
+	private static final boolean COMPRESS = true;
+	private static final boolean READ_COMPRESSED = true;
 
 	public static void main(String args[]) throws Exception {
 
@@ -20,10 +22,10 @@ public class SearchEngineTest {
 
 		long start = System.currentTimeMillis();
 
+		if(CREATE_INDEX)
+			myEngine.index("");
 		if(COMPRESS)
 			myEngine.compressIndex(""); //String directory
-		else
-			myEngine.index("");
 
 		long time = System.currentTimeMillis() - start;
 
@@ -31,14 +33,14 @@ public class SearchEngineTest {
 
 		// myEngine.loadIndex(String directory)
 
-		if (COMPRESS)
+		if (READ_COMPRESSED)
 			myEngine.loadCompressedIndex("");
 		else
 			myEngine.loadIndex("");
 
 		String query = "write";
 
-		ArrayList<String> results = new ArrayList<>();
+		ArrayList<String> results;
 
 		start = System.currentTimeMillis();
 

@@ -82,8 +82,7 @@ public final class PostingList {
 		public void write(Kryo kryo, Output output, PostingList list) {
 			output.writeInt(list.items.size());
 			for (PostingListItem item : list.items) {
-				int id = item.getPatentId();
-				output.writeInt(id);
+				output.writeInt(item.getPatentId());
 				IntArrayList positions = item.getPositions();
 				output.writeInt(positions.size());
 				for (int pos : positions) {
