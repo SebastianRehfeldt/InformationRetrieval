@@ -48,7 +48,7 @@ final class TableIndex {
 		public void write(Kryo kryo, Output output, TableIndex index) {
 			output.writeInt(index.keys.length);
 			for (int i = 0; i < index.keys.length; i++) {
-				output.writeAscii(index.keys[i]);
+				output.writeString(index.keys[i]);
 			}
 			output.writeLongs(index.positions);
 		}

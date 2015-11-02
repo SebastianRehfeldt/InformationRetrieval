@@ -55,7 +55,7 @@ public final class TableWriter<T> implements AutoCloseable {
 		Verify.verify(lastKey == null || lastKey.compareTo(key) < 0, "please insert in order!");
 		lastKey = key;
 		long position = writer.total();
-		writer.writeAscii(key);
+		writer.writeString(key);
 		kryo.writeObject(writer, value, serializer);
 		if (createIndex && writer.total() - lastIndexPos > blockSize) {
 			indexKeys.add(key);
