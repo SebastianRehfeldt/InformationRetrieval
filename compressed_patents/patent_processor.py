@@ -19,5 +19,7 @@ for line in in_file:
     lines.append(line)
     if 'appl-type="utility"' in line:
         appltype_utility = True
-    
+        
+if lines and appltype_utility:
+            out.writestr("{}-{}.xml".format(base, i), "".join(lines))
 out.close()
