@@ -4,7 +4,6 @@ import com.google.common.collect.Lists;
 
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.en.EnglishAnalyzer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
 import java.io.IOException;
@@ -14,7 +13,8 @@ import java.util.List;
 public class SearchEngineTokenizer {
 
 	public List<String> tokenizeStopStem(Reader reader) {
-		Analyzer analyzer = new EnglishAnalyzer();
+
+		Analyzer analyzer = new CustomAnalyzer();
 		try {
 			TokenStream stream = analyzer.tokenStream("", reader);
 			//stream = new EnglishMinimalStemFilter(stream);
