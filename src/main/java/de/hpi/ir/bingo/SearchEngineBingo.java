@@ -73,20 +73,25 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 		Set<String> titles = new HashSet<>();
 		List<String> processedQuery = tokenizer.tokenizeStopStem(new StringReader(query));
 		String title = "";
-
-		//phrase Query
+		
 		System.out.println(query);
+		System.out.println(processedQuery);
+
 		if(query.startsWith("'") && query.endsWith("'")){
+			System.out.println("Phrase query");
 			postingList = getPostingListForPhraseQuery(processedQuery);
 		}
+		else if(query.contains("OR")){
+			postingList = getPostingListForQuery(processedQuery, QueryOperators.OR);
+			System.out.println("OR query");
+		}
+		else if(query.contains("NOT")){
+			System.out.println("NOT query");
+			postingList = getPostingListForQuery(processedQuery, QueryOperators.NOT);
+		}
 		else{
-			//find the postinglist for each search term and concatenate the lists
-			for (String searchWord : processedQuery) {
-				PostingList items = index.get(searchWord);
-				if (items != null) {
-					postingList.addAll(items);
-				}
-			}
+			System.out.println("AND query");
+			postingList = getPostingListForQuery(processedQuery, QueryOperators.AND);
 		}
 		
 
@@ -95,10 +100,47 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 			PatentData patentData = titleIndex.get(Integer.toString(patent.getPatentId()));
 			assert patentData != null;
 			title = patentData.getTitle();
+//			if(query.startsWith("'") && query.endsWith("'")){
+//				String phrase = query.substring(1, query.length()-1).toLowerCase();
+//				if(patentData.getAbstractText().toLowerCase().contains(phrase)){
+//					titles.add(title);
+//				}
+//			}
+//			else{
+//				titles.add(title);
+//			}
 			titles.add(title);
+			
 		}
 
 		return new ArrayList<>(titles);
+	}
+
+	private static enum QueryOperators {
+		AND, OR, NOT;
+	}
+	
+	private PostingList getPostingListForQuery(List<String> processedQuery, QueryOperators operator) {
+		PostingList postingList = null;
+		for (String searchWord : processedQuery) {
+			PostingList items = index.get(searchWord);
+			if (postingList == null){
+				postingList = items;
+			}
+			else{
+				if (items != null) {
+					switch (operator) {
+					case AND:
+						postingList = postingList.and(items);break;
+					case OR:
+						postingList = postingList.or(items);break;
+					case NOT:
+						postingList = postingList.not(items);break;
+					}
+				}
+			}			
+		}
+		return postingList;
 	}
 
 	private PostingList getPostingListForPhraseQuery(List<String> query) {

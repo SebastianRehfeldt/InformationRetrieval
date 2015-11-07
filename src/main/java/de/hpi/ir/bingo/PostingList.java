@@ -39,10 +39,6 @@ public final class PostingList {
 		items.add(item);
 	}
 
-	public void addAll(PostingList list) {
-		items.addAll(list.items); // TODO!!
-	}
-
 	public PostingList and(PostingList other) {
 		List<PostingListItem> items2 = other.items;
 		int i1 = 0, i2 = 0;
