@@ -34,6 +34,10 @@ final class TableIndex {
 		return new Range(positions[index], positions[index + 1]);
 	}
 
+	public long getFileSize() {
+		return positions[positions.length-1];
+	}
+
 	public static class Range {
 		public final long from;
 		public final long to;

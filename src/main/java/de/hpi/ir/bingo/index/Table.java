@@ -1,10 +1,15 @@
 package de.hpi.ir.bingo.index;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
 public final class Table<T> implements AutoCloseable {
 
@@ -44,6 +49,25 @@ public final class Table<T> implements AutoCloseable {
 		}
 		return null;
 	}
+
+	public List<Map.Entry<String, T>> getWithPrefix(String key) {
+		List<Map.Entry<String, T>> result = Lists.newArrayList();
+		TableIndex.Range range = index.getRange(key);
+		long remainingFileSize = index.getFileSize() - range.from;
+		input.setStreamPosition(range.from);
+		while (input.total() < remainingFileSize) {
+			String currentKey = input.readString();
+			if (currentKey.compareTo(key) < 0) {
+				kryo.readObject(input, clazz, serializer); // skip this
+			} else if (currentKey.startsWith(key)) {
+				result.add(Maps.immutableEntry(currentKey, kryo.readObject(input, clazz, serializer)));
+			} else {
+				break;
+			}
+		}
+		return result;
+	}
+
 
 	@Override
 	public void close() {
