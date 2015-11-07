@@ -100,6 +100,9 @@ public final class PostingList {
 				i2++;
 			}
 		}
+		while (i1 < items.size()) {
+			result.addItem(items.get(i1++));
+		}
 		return result;
 	}
 

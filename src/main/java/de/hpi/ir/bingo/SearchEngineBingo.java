@@ -8,8 +8,10 @@ import java.io.StringReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 
@@ -71,10 +73,12 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 	ArrayList<String> search(String query, int topK, int prf) {
 		PostingList postingList = new PostingList();
 		Set<String> titles = new HashSet<>();
-		List<String> processedQuery = tokenizer.tokenizeStopStem(new StringReader(query));
 		String title = "";
 		
 		System.out.println(query);
+		
+		query = query.replace("*", "xxx");
+		List<String> processedQuery = tokenizer.tokenizeStopStem(new StringReader(query));
 		System.out.println(processedQuery);
 
 		if(query.startsWith("'") && query.endsWith("'")){
@@ -123,11 +127,19 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 	private PostingList getPostingListForQuery(List<String> processedQuery, QueryOperators operator) {
 		PostingList postingList = null;
 		for (String searchWord : processedQuery) {
-			PostingList items = index.get(searchWord);
+			PostingList items;
+			if(searchWord.endsWith("xxx")){
+				List<Entry<String,PostingList>> prefixResult = index.getWithPrefix(searchWord.substring(0, searchWord.length()-3));
+				items = new PostingList();
+				for (Entry<String, PostingList> entry : prefixResult) {
+					items = items.or(entry.getValue());
+				}
+			} else {
+				items = index.get(searchWord);
+			}			
 			if (postingList == null){
 				postingList = items;
-			}
-			else{
+			} else{
 				if (items != null) {
 					switch (operator) {
 					case AND:
@@ -139,6 +151,9 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 					}
 				}
 			}			
+		}
+		if (postingList == null){
+			return new PostingList();	
 		}
 		return postingList;
 	}

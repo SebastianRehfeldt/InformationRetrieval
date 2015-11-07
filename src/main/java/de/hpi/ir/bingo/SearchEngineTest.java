@@ -38,7 +38,7 @@ public class SearchEngineTest {
 		else
 			myEngine.loadIndex("");
 
-		String query = "comprises AND consists";
+		String query = "methods NOT inventions";
 
 		ArrayList<String> results;
 
@@ -50,9 +50,14 @@ public class SearchEngineTest {
 
 		System.out.print("Searching Time:\t" + time + "\tms\n");
 
-		for(String result : results){
-			System.out.println(result);
+		if(results.isEmpty()){
+			System.out.println("No results found");
 		}
+		else{
+			for(String result : results){
+				System.out.println(result);
+			}
+		}		
 	}
 
 }
