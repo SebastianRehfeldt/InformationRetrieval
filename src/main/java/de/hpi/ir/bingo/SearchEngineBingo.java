@@ -74,13 +74,21 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 		List<String> processedQuery = tokenizer.tokenizeStopStem(new StringReader(query));
 		String title = "";
 
-		//find the postinglist for each search term and concatenate the lists
-		for (String searchWord : processedQuery) {
-			PostingList items = index.get(searchWord);
-			if (items != null) {
-				postingList.addAll(items);
+		//phrase Query
+		System.out.println(query);
+		if(query.startsWith("'") && query.endsWith("'")){
+			postingList = getPostingListForPhraseQuery(processedQuery);
+		}
+		else{
+			//find the postinglist for each search term and concatenate the lists
+			for (String searchWord : processedQuery) {
+				PostingList items = index.get(searchWord);
+				if (items != null) {
+					postingList.addAll(items);
+				}
 			}
 		}
+		
 
 		//find for each postinglistitem the patent and retrieve the title of this patent
 		for (PostingListItem patent : postingList.getItems()) {
@@ -91,6 +99,16 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 		}
 
 		return new ArrayList<>(titles);
+	}
+
+	private PostingList getPostingListForPhraseQuery(List<String> query) {
+		PostingList postingList = index.get(query.get(0));
+		
+		for(int i=1;i<query.size();i++){
+			postingList = postingList.union(index.get(query.get(i)));
+		}
+		
+		return postingList;
 	}
 
 	//printing

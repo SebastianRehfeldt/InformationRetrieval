@@ -1,5 +1,6 @@
 package de.hpi.ir.bingo;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -36,6 +37,31 @@ public final class PostingList {
 
 	public void addAll(PostingList list) {
 		items.addAll(list.items);
+	}
+		
+	public PostingList union(PostingList postingList){
+		List<PostingListItem> items2 = postingList.items;
+		int i1=0,i2=0;
+		PostingList result = new PostingList();
+		while(i1<items.size() && i2<items2.size()){
+			if(items.get(i1).getPatentId() < items2.get(i2).getPatentId()){
+				i1++;
+			}
+			else if (items.get(i1).getPatentId() == items2.get(i2).getPatentId()){
+				PostingListItem union = items.get(i1).union(items2.get(i2));
+				if(union.getPositions().size()>0){
+					result.addItem(union);
+				}
+				i1++;
+				i2++;
+			}
+			else{
+				i2++;
+			}
+		}
+		return result;
+		
+		
 	}
 
 	private static class PostingListCompressingSerializer extends Serializer<PostingList> {
@@ -119,5 +145,10 @@ public final class PostingList {
 	@Override
 	public int hashCode() {
 		return Objects.hashCode(items);
+	}
+	
+	@Override
+	public String toString() {
+	    return MoreObjects.toStringHelper(this).add("items", items).toString();
 	}
 }
