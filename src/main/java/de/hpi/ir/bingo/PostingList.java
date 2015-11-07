@@ -2,6 +2,8 @@ package de.hpi.ir.bingo;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.base.Verify;
+import com.google.common.collect.Lists;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
@@ -17,10 +19,11 @@ import java.util.List;
 public final class PostingList {
 	public static final Serializer<PostingList> NORMAL_SERIALIZER = new PostingListSerializer();
 	public static final Serializer<PostingList> COMPRESSING_SERIALIZER = new PostingListCompressingSerializer();
+
 	private final List<PostingListItem> items;
 
 	public PostingList() {
-		this(new ArrayList<>());
+		this(Lists.newArrayList());
 	}
 
 	public PostingList(List<PostingListItem> items) {
@@ -32,36 +35,97 @@ public final class PostingList {
 	}
 
 	public void addItem(PostingListItem item) {
+		Verify.verify(items.isEmpty() || items.get(items.size() - 1).getPatentId() < item.getPatentId());
 		items.add(item);
 	}
 
 	public void addAll(PostingList list) {
-		items.addAll(list.items);
+		items.addAll(list.items); // TODO!!
 	}
-		
-	public PostingList union(PostingList postingList){
-		List<PostingListItem> items2 = postingList.items;
-		int i1=0,i2=0;
+
+	public PostingList and(PostingList other) {
+		List<PostingListItem> items2 = other.items;
+		int i1 = 0, i2 = 0;
 		PostingList result = new PostingList();
-		while(i1<items.size() && i2<items2.size()){
-			if(items.get(i1).getPatentId() < items2.get(i2).getPatentId()){
+		while (i1 < items.size() && i2 < items2.size()) {
+			if (items.get(i1).getPatentId() < items2.get(i2).getPatentId()) {
 				i1++;
-			}
-			else if (items.get(i1).getPatentId() == items2.get(i2).getPatentId()){
-				PostingListItem union = items.get(i1).union(items2.get(i2));
-				if(union.getPositions().size()>0){
-					result.addItem(union);
-				}
+			} else if (items.get(i1).getPatentId() == items2.get(i2).getPatentId()) {
+				PostingListItem and = items.get(i1).merge(items2.get(i2));
+				result.addItem(and);
 				i1++;
 				i2++;
-			}
-			else{
+			} else {
 				i2++;
 			}
 		}
 		return result;
-		
-		
+	}
+
+	public PostingList or(PostingList other) {
+		List<PostingListItem> items2 = other.items;
+		int i1 = 0, i2 = 0;
+		PostingList result = new PostingList();
+		while (i1 < items.size() && i2 < items2.size()) {
+			if (items.get(i1).getPatentId() < items2.get(i2).getPatentId()) {
+				result.addItem(items.get(i1));
+				i1++;
+			} else if (items.get(i1).getPatentId() == items2.get(i2).getPatentId()) {
+				PostingListItem and = items.get(i1).merge(items2.get(i2));
+				result.addItem(and);
+				i1++;
+				i2++;
+			} else {
+				result.addItem(items2.get(i2));
+				i2++;
+			}
+		}
+		while (i1 < items.size()) {
+			result.addItem(items.get(i1++));
+		}
+		while (i2 < items2.size()) {
+			result.addItem(items2.get(i2++));
+		}
+		return result;
+	}
+
+	public PostingList not(PostingList other) {
+		List<PostingListItem> items2 = other.items;
+		int i1 = 0, i2 = 0;
+		PostingList result = new PostingList();
+		while (i1 < items.size() && i2 < items2.size()) {
+			if (items.get(i1).getPatentId() < items2.get(i2).getPatentId()) {
+				result.addItem(items.get(i1));
+				i1++;
+			} else if (items.get(i1).getPatentId() == items2.get(i2).getPatentId()) {
+				i1++;
+				i2++;
+			} else {
+				i2++;
+			}
+		}
+		return result;
+	}
+
+	public PostingList union(PostingList postingList) {
+		List<PostingListItem> items2 = postingList.items;
+		int i1 = 0, i2 = 0;
+		PostingList result = new PostingList();
+		while (i1 < items.size() && i2 < items2.size()) {
+			if (items.get(i1).getPatentId() < items2.get(i2).getPatentId()) {
+				i1++;
+			} else if (items.get(i1).getPatentId() == items2.get(i2).getPatentId()) {
+				PostingListItem union = items.get(i1).union(items2.get(i2));
+				if (union.getPositions().size() > 0) {
+					result.addItem(union);
+				}
+				i1++;
+				i2++;
+			} else {
+				i2++;
+			}
+		}
+		return result;
 	}
 
 	private static class PostingListCompressingSerializer extends Serializer<PostingList> {
@@ -85,7 +149,8 @@ public final class PostingList {
 
 		public PostingList read(Kryo kryo, Input input, Class<PostingList> type) {
 			int size = input.readVarInt(true);
-			ArrayList<PostingListItem> items = new ArrayList<>(size);
+			List<PostingListItem> items = new ArrayList<>(size);
+
 			int lastId = 0;
 			for (int i = 0; i < size; i++) {
 				int id = input.readVarInt(true) + lastId;
@@ -146,9 +211,9 @@ public final class PostingList {
 	public int hashCode() {
 		return Objects.hashCode(items);
 	}
-	
+
 	@Override
 	public String toString() {
-	    return MoreObjects.toStringHelper(this).add("items", items).toString();
+		return MoreObjects.toStringHelper(this).add("items", items).toString();
 	}
 }

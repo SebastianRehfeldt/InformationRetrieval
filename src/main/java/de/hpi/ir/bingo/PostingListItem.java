@@ -5,9 +5,6 @@ import com.google.common.base.Objects;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public final class PostingListItem {
 	private final int patentId;
 	private IntArrayList positions;
@@ -17,13 +14,14 @@ public final class PostingListItem {
 	}*/
 
 	public PostingListItem(int patentId, int position) {
-		this(patentId,  new IntArrayList());
+		this(patentId, new IntArrayList());
 		this.positions.add(position);
 	}
 
 	public PostingListItem(int id, IntArrayList posList) {
 		this.patentId = id;
 		this.positions = posList;
+		int[] elements;
 	}
 
 	public PostingListItem(int id, int[] positions) {
@@ -41,8 +39,8 @@ public final class PostingListItem {
 	public IntArrayList getPositions() {
 		return positions;
 	}
-	
-	public PostingListItem union(PostingListItem item){
+
+	public PostingListItem union(PostingListItem item) {
 		int[] elements = positions.elements();
 		int[] elements2 = item.positions.elements();
 		IntArrayList result = new IntArrayList();
@@ -50,17 +48,44 @@ public final class PostingListItem {
 		while (i1 < elements.length && i2 < elements2.length) {
 			int v1 = elements[i1] + 1;
 			int v2 = elements2[i2];
-			if (v1 < v2){
+			if (v1 < v2) {
 				i1++;
-			}
-			else if (v1 == v2){
+			} else if (v1 == v2) {
 				result.add(v1);
 				i1++;
 				i2++;
-			}
-			else{
+			} else {
 				i2++;
-			}				
+			}
+		}
+		return new PostingListItem(patentId, result);
+	}
+
+	public PostingListItem merge(PostingListItem item) {
+		int[] elements = positions.elements();
+		int[] elements2 = item.positions.elements();
+		IntArrayList result = new IntArrayList();
+		int i1 = 0, i2 = 0;
+		while (i1 < elements.length && i2 < elements2.length) {
+			int v1 = elements[i1];
+			int v2 = elements2[i2];
+			if (v1 < v2) {
+				result.add(v1);
+				i1++;
+			} else if (v1 == v2) {
+				result.add(v1);
+				i1++;
+				i2++;
+			} else {
+				result.add(v2);
+				i2++;
+			}
+		}
+		while (i1 < elements.length) {
+			result.add(elements[i1++]);
+		}
+		while (i2 < elements2.length) {
+			result.add(elements2[i2++]);
 		}
 		return new PostingListItem(patentId, result);
 	}
@@ -86,9 +111,9 @@ public final class PostingListItem {
 	public int hashCode() {
 		return Objects.hashCode(patentId, positions);
 	}
-	
+
 	@Override
 	public String toString() {
-	return MoreObjects.toStringHelper(this).add("id", patentId).add("positions", positions).toString();
+		return MoreObjects.toStringHelper(this).add("id", patentId).add("positions", positions).toString();
 	}
 }
