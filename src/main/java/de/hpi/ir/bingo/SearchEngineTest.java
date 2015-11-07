@@ -12,8 +12,8 @@ import java.util.ArrayList;
  */
 public class SearchEngineTest {
 
-	private static final boolean CREATE_INDEX = true;
-	private static final boolean COMPRESS = true;
+	private static final boolean CREATE_INDEX = false;
+	private static final boolean COMPRESS = false;
 	private static final boolean READ_COMPRESSED = true;
 
 	public static void main(String args[]) throws Exception {
@@ -38,7 +38,7 @@ public class SearchEngineTest {
 		else
 			myEngine.loadIndex("");
 
-		String query = "write";
+		String query = "'mobile device'";
 
 		ArrayList<String> results;
 
@@ -50,7 +50,9 @@ public class SearchEngineTest {
 
 		System.out.print("Searching Time:\t" + time + "\tms\n");
 
-		System.out.println(results);
+		for(String result : results){
+			System.out.println(result);
+		}
 	}
 
 }
