@@ -1,20 +1,20 @@
 package de.hpi.ir.bingo;
 
-import com.google.common.base.MoreObjects;
-import com.google.common.base.Objects;
-import com.google.common.base.Verify;
-import com.google.common.collect.Lists;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import com.google.common.base.MoreObjects;
+import com.google.common.base.Objects;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Verify;
+import com.google.common.collect.Lists;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 public final class PostingList {
 	public static final Serializer<PostingList> NORMAL_SERIALIZER = new PostingListSerializer();
@@ -40,14 +40,17 @@ public final class PostingList {
 	}
 
 	public PostingList and(PostingList other) {
+		Preconditions.checkNotNull(other);
 		List<PostingListItem> items2 = other.items;
 		int i1 = 0, i2 = 0;
 		PostingList result = new PostingList();
 		while (i1 < items.size() && i2 < items2.size()) {
-			if (items.get(i1).getPatentId() < items2.get(i2).getPatentId()) {
+			PostingListItem p1 = items.get(i1);
+			PostingListItem p2 = items2.get(i2);
+			if (p1.getPatentId() < p2.getPatentId()) {
 				i1++;
-			} else if (items.get(i1).getPatentId() == items2.get(i2).getPatentId()) {
-				PostingListItem and = items.get(i1).merge(items2.get(i2));
+			} else if (p1.getPatentId() == p2.getPatentId()) {
+				PostingListItem and = p1.merge(p2);
 				result.addItem(and);
 				i1++;
 				i2++;
@@ -59,20 +62,23 @@ public final class PostingList {
 	}
 
 	public PostingList or(PostingList other) {
+		Preconditions.checkNotNull(other);
 		List<PostingListItem> items2 = other.items;
 		int i1 = 0, i2 = 0;
 		PostingList result = new PostingList();
 		while (i1 < items.size() && i2 < items2.size()) {
-			if (items.get(i1).getPatentId() < items2.get(i2).getPatentId()) {
-				result.addItem(items.get(i1));
+			PostingListItem p1 = items.get(i1);
+			PostingListItem p2 = items2.get(i2);
+			if (p1.getPatentId() < p2.getPatentId()) {
+				result.addItem(p1);
 				i1++;
-			} else if (items.get(i1).getPatentId() == items2.get(i2).getPatentId()) {
-				PostingListItem and = items.get(i1).merge(items2.get(i2));
+			} else if (p1.getPatentId() == p2.getPatentId()) {
+				PostingListItem and = p1.merge(p2);
 				result.addItem(and);
 				i1++;
 				i2++;
 			} else {
-				result.addItem(items2.get(i2));
+				result.addItem(p2);
 				i2++;
 			}
 		}
@@ -86,14 +92,17 @@ public final class PostingList {
 	}
 
 	public PostingList not(PostingList other) {
+		Preconditions.checkNotNull(other);
 		List<PostingListItem> items2 = other.items;
 		int i1 = 0, i2 = 0;
 		PostingList result = new PostingList();
 		while (i1 < items.size() && i2 < items2.size()) {
-			if (items.get(i1).getPatentId() < items2.get(i2).getPatentId()) {
-				result.addItem(items.get(i1));
+			PostingListItem p1 = items.get(i1);
+			PostingListItem p2 = items2.get(i2);
+			if (p1.getPatentId() < p2.getPatentId()) {
+				result.addItem(p1);
 				i1++;
-			} else if (items.get(i1).getPatentId() == items2.get(i2).getPatentId()) {
+			} else if (p1.getPatentId() == p2.getPatentId()) {
 				i1++;
 				i2++;
 			} else {
@@ -106,15 +115,18 @@ public final class PostingList {
 		return result;
 	}
 
-	public PostingList union(PostingList postingList) {
+	public PostingList combinePhrase(PostingList postingList) {
+		Preconditions.checkNotNull(postingList);
 		List<PostingListItem> items2 = postingList.items;
 		int i1 = 0, i2 = 0;
 		PostingList result = new PostingList();
 		while (i1 < items.size() && i2 < items2.size()) {
-			if (items.get(i1).getPatentId() < items2.get(i2).getPatentId()) {
+			PostingListItem p1 = items.get(i1);
+			PostingListItem p2 = items2.get(i2);
+			if (p1.getPatentId() < p2.getPatentId()) {
 				i1++;
-			} else if (items.get(i1).getPatentId() == items2.get(i2).getPatentId()) {
-				PostingListItem union = items.get(i1).union(items2.get(i2));
+			} else if (p1.getPatentId() == p2.getPatentId()) {
+				PostingListItem union = p1.combinePhrase(p2);
 				if (union.getPositions().size() > 0) {
 					result.addItem(union);
 				}

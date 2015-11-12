@@ -1,19 +1,18 @@
 package de.hpi.ir.bingo;
 
-import com.google.common.collect.Maps;
-
-import com.esotericsoftware.kryo.Serializer;
-
-import de.hpi.ir.bingo.index.TableWriter;
-
 import java.io.StringReader;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.esotericsoftware.kryo.Serializer;
+import com.google.common.collect.Maps;
+
+import de.hpi.ir.bingo.index.TableWriter;
+
 public class SearchEngineIndexer {
-	private SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
+	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
 
 	public void createIndex(String fileName, String directory, String indexName, Serializer<PostingList> serializer) {
 
@@ -37,7 +36,7 @@ public class SearchEngineIndexer {
 
 	//index creation
 	private Map<String, PostingListItem> buildIndexForDocument(PatentData patent) {
-		List<String> tokens = tokenizer.tokenizeStopStem(new StringReader(patent.getAbstractText()));
+		List<String> tokens = tokenizer.tokenizeStopStem(new StringReader(patent.getTitle() + " " + patent.getAbstractText()));
 		Map<String, PostingListItem> docIndex = new HashMap<>();
 		int position = 0;
 

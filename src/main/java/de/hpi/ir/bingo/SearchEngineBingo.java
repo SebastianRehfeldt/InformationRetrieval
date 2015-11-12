@@ -1,18 +1,17 @@
 package de.hpi.ir.bingo;
 
-import de.hpi.ir.bingo.index.Table;
-import de.hpi.ir.bingo.index.TableReader;
-import de.hpi.ir.bingo.index.TableWriter;
-
 import java.io.StringReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
+import de.hpi.ir.bingo.index.Table;
+import de.hpi.ir.bingo.index.TableReader;
+import de.hpi.ir.bingo.index.TableWriter;
 
 
 /**
@@ -27,7 +26,7 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 
 	private Table<PostingList> index;
 	private Table<PatentData> titleIndex;
-	private SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
+	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
 
 	public SearchEngineBingo() { // Replace 'Template' with your search engine's name, i.e. SearchEngineMyTeamName
 		// This should stay as is! Don't add anything here!
@@ -55,7 +54,7 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 		TableWriter<PostingList> writer = new TableWriter<>(Paths.get(directory, "compressed-index"), true,
 				PostingList.class, PostingList.COMPRESSING_SERIALIZER);
 		Map.Entry<String, PostingList> posting;
-		while((posting = reader.readNext()) != null) {
+		while ((posting = reader.readNext()) != null) {
 			writer.put(posting.getKey(), posting.getValue());
 		}
 		reader.close();
@@ -71,33 +70,30 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 
 	@Override
 	ArrayList<String> search(String query, int topK, int prf) {
-		PostingList postingList = new PostingList();
+		PostingList postingList;
 		Set<String> titles = new HashSet<>();
 		String title = "";
-		
+
 		System.out.println(query);
-		
+
 		query = query.replace("*", "xxx");
 		List<String> processedQuery = tokenizer.tokenizeStopStem(new StringReader(query));
 		System.out.println(processedQuery);
 
-		if(query.startsWith("'") && query.endsWith("'")){
+		if (query.startsWith("'") && query.endsWith("'")) {
 			System.out.println("Phrase query");
 			postingList = getPostingListForPhraseQuery(processedQuery);
-		}
-		else if(query.contains("OR")){
+		} else if (query.contains("OR")) {
 			postingList = getPostingListForQuery(processedQuery, QueryOperators.OR);
 			System.out.println("OR query");
-		}
-		else if(query.contains("NOT")){
+		} else if (query.contains("NOT")) {
 			System.out.println("NOT query");
 			postingList = getPostingListForQuery(processedQuery, QueryOperators.NOT);
-		}
-		else{
+		} else {
 			System.out.println("AND query");
 			postingList = getPostingListForQuery(processedQuery, QueryOperators.AND);
 		}
-		
+
 
 		//find for each postinglistitem the patent and retrieve the title of this patent
 		for (PostingListItem patent : postingList.getItems()) {
@@ -114,57 +110,65 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 //				titles.add(title);
 //			}
 			titles.add(title);
-			
+
 		}
 
 		return new ArrayList<>(titles);
 	}
 
-	private static enum QueryOperators {
-		AND, OR, NOT;
+	private enum QueryOperators {
+		AND, OR, NOT
 	}
-	
+
 	private PostingList getPostingListForQuery(List<String> processedQuery, QueryOperators operator) {
 		PostingList postingList = null;
 		for (String searchWord : processedQuery) {
 			PostingList items;
-			if(searchWord.endsWith("xxx")){
-				List<Entry<String,PostingList>> prefixResult = index.getWithPrefix(searchWord.substring(0, searchWord.length()-3));
+			if (searchWord.endsWith("xxx")) {
+				List<Entry<String, PostingList>> prefixResult = index.getWithPrefix(searchWord.substring(0, searchWord.length() - 3));
 				items = new PostingList();
 				for (Entry<String, PostingList> entry : prefixResult) {
 					items = items.or(entry.getValue());
 				}
 			} else {
 				items = index.get(searchWord);
-			}			
-			if (postingList == null){
-				postingList = items;
-			} else{
-				if (items != null) {
-					switch (operator) {
-					case AND:
-						postingList = postingList.and(items);break;
-					case OR:
-						postingList = postingList.or(items);break;
-					case NOT:
-						postingList = postingList.not(items);break;
-					}
+				if (items == null) {
+					items = new PostingList();
 				}
-			}			
+			}
+			if (postingList == null) {
+				postingList = items;
+			} else {
+				switch (operator) {
+					case AND:
+						postingList = postingList.and(items);
+						break;
+					case OR:
+						postingList = postingList.or(items);
+						break;
+					case NOT:
+						postingList = postingList.not(items);
+						break;
+				}
+			}
 		}
-		if (postingList == null){
-			return new PostingList();	
+		if (postingList == null) {
+			return new PostingList();
 		}
 		return postingList;
 	}
 
 	private PostingList getPostingListForPhraseQuery(List<String> query) {
 		PostingList postingList = index.get(query.get(0));
-		
-		for(int i=1;i<query.size();i++){
-			postingList = postingList.union(index.get(query.get(i)));
+
+		for (int i = 1; i < query.size(); i++) {
+			PostingList list = index.get(query.get(i));
+			if (list == null) {
+				return new PostingList();
+			}
+			postingList = postingList.combinePhrase(list);
 		}
-		
+
 		return postingList;
 	}
 

@@ -24,8 +24,8 @@ public class PostingListTest {
 	}
 
 	@Test
-	public void testUnion() throws Exception {
-		PostingList result = postingList1.union(postingList2);
+	public void testCombinePhrase() throws Exception {
+		PostingList result = postingList1.combinePhrase(postingList2);
 
 		PostingList expectedPostingList = new PostingList();
 		expectedPostingList.addItem(new PostingListItem(1, new int[]{4}));

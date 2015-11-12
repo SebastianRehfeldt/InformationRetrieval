@@ -21,7 +21,6 @@ public final class TableWriter<T> implements AutoCloseable {
 	private final ArrayList<String> indexKeys;
 	private final ArrayList<Long> indexPositions;
 	private final int blockSize;
-	private final Class<T> clazz;
 	private final Serializer<T> serializer;
 	private final Kryo kryo = TableUtil.getKryo();
 	private String lastKey = null;
@@ -33,7 +32,6 @@ public final class TableWriter<T> implements AutoCloseable {
 
 	TableWriter(Path file, boolean createIndex, int blockSize, Class<T> clazz, Serializer<T> serializer) {
 		this.blockSize = blockSize;
-		this.clazz = clazz;
 		this.serializer = TableUtil.getDefaultSerializerIfNull(serializer, clazz);
 		lastIndexPos = -blockSize;
 		this.createIndex = createIndex;

@@ -25,7 +25,7 @@ public class PatentHandler extends DefaultHandler {
 	private StringBuilder currentId;
 	private StringBuilder currentAbstract;
 	private String currentApplType;
-	private Consumer<PatentData> patentComsumer;
+	private final Consumer<PatentData> patentComsumer;
 
 	private PatentHandler(Consumer<PatentData> patentComsumer) {
 		this.patentComsumer = patentComsumer;

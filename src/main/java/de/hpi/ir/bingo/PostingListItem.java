@@ -7,7 +7,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 public final class PostingListItem {
 	private final int patentId;
-	private IntArrayList positions;
+	private final IntArrayList positions;
 
 	/*private PostingListItem() {
 		this(-1, new IntArrayList());
@@ -40,7 +40,11 @@ public final class PostingListItem {
 		return positions;
 	}
 
-	public PostingListItem union(PostingListItem item) {
+	/**
+	 * Combines this list with the list of a word that should be next in a phrase query.
+	 * The result contains the positions of all terms from {@code item} that have a matching position in {@code this}
+	 */
+	public PostingListItem combinePhrase(PostingListItem item) {
 		int[] elements = positions.elements();
 		int[] elements2 = item.positions.elements();
 		IntArrayList result = new IntArrayList();
@@ -88,14 +92,6 @@ public final class PostingListItem {
 			result.add(elements2[i2++]);
 		}
 		return new PostingListItem(patentId, result);
-	}
-
-	public void print() {
-		System.out.print("\t Patent: " + patentId + "\n \t \t Position: ");
-		for (int position : positions) {
-			System.out.print(position + ", ");
-		}
-		System.out.println("");
 	}
 
 	@Override

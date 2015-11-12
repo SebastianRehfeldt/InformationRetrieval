@@ -1,15 +1,14 @@
 package de.hpi.ir.bingo.index;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Map;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
-
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Map;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 
 public final class Table<T> implements AutoCloseable {
 
