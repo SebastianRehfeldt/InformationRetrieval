@@ -72,4 +72,8 @@ public final class Table<T> implements AutoCloseable {
 	public void close() {
 		input.close();
 	}
+
+	public int getSize() {
+		return index.getSize();
+	}
 }

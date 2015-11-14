@@ -25,7 +25,7 @@ import de.hpi.ir.bingo.index.TableWriter;
 public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with your search engine's name, i.e. SearchEngineMyTeamName
 
 	private Table<PostingList> index;
-	private Table<PatentData> titleIndex;
+	private Table<PatentData> patentIndex;
 	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
 
 	public SearchEngineBingo() { // Replace 'Template' with your search engine's name, i.e. SearchEngineMyTeamName
@@ -43,7 +43,7 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 	@Override
 	boolean loadIndex(String directory) {
 		index = Table.open(Paths.get(directory, "index"), PostingList.class, PostingList.NORMAL_SERIALIZER);
-		titleIndex = Table.open(Paths.get(directory, "patents"), PatentData.class, null);
+		patentIndex = Table.open(Paths.get(directory, "patents"), PatentData.class, null);
 		return true;
 	}
 
@@ -64,7 +64,7 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 	@Override
 	boolean loadCompressedIndex(String directory) {
 		index = Table.open(Paths.get(directory, "compressed-index"), PostingList.class, PostingList.COMPRESSING_SERIALIZER);
-		titleIndex = Table.open(Paths.get(directory, "patents"), PatentData.class, null);
+		patentIndex = Table.open(Paths.get(directory, "patents"), PatentData.class, null);
 		return true;
 	}
 
@@ -89,15 +89,18 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 		} else if (query.contains("NOT")) {
 			System.out.println("NOT query");
 			postingList = getPostingListForQuery(processedQuery, QueryOperators.NOT);
-		} else {
+		} else if (query.contains("AND")){
 			System.out.println("AND query");
 			postingList = getPostingListForQuery(processedQuery, QueryOperators.AND);
+		} else {
+			System.out.println("Normal query");
+			postingList = getRankedPostingLists(processedQuery);
 		}
 
 
 		//find for each postinglistitem the patent and retrieve the title of this patent
 		for (PostingListItem patent : postingList.getItems()) {
-			PatentData patentData = titleIndex.get(Integer.toString(patent.getPatentId()));
+			PatentData patentData = patentIndex.get(Integer.toString(patent.getPatentId()));
 			assert patentData != null;
 			title = patentData.getTitle();
 //			if(query.startsWith("'") && query.endsWith("'")){
@@ -114,6 +117,20 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 		}
 
 		return new ArrayList<>(titles);
+	}
+
+	private PostingList getRankedPostingLists(List<String> processedQuery) {
+		PostingList postingList = null;
+		double[] tfidf = null;
+		int i = 0;
+		for (String searchWord : processedQuery) {
+			postingList = index.get(searchWord);
+			for(PostingListItem item : postingList.getItems()){
+				tfidf[i++] = item.getTermFrequency() * Math.log((double) patentIndex.getSize()/postingList.getItems().size()); 
+			}
+		}
+		
+		return null;
 	}
 
 	private enum QueryOperators {

@@ -8,24 +8,25 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 public final class PostingListItem {
 	private final int patentId;
 	private final IntArrayList positions;
+	private final int documentWordCount;
 
 	/*private PostingListItem() {
 		this(-1, new IntArrayList());
 	}*/
 
-	public PostingListItem(int patentId, int position) {
-		this(patentId, new IntArrayList());
+	public PostingListItem(int patentId, int position, int documentWordCount) {
+		this(patentId, new IntArrayList(), documentWordCount);
 		this.positions.add(position);
 	}
 
-	public PostingListItem(int id, IntArrayList posList) {
+	public PostingListItem(int id, IntArrayList posList, int documentWordCount) {
 		this.patentId = id;
 		this.positions = posList;
-		int[] elements;
+		this.documentWordCount = documentWordCount;
 	}
 
-	public PostingListItem(int id, int[] positions) {
-		this(id, IntArrayList.wrap(positions));
+	public PostingListItem(int id, int[] positions, int documentWordCount) {
+		this(id, IntArrayList.wrap(positions), documentWordCount);
 	}
 
 	public void addPosition(int position) {
@@ -62,7 +63,7 @@ public final class PostingListItem {
 				i2++;
 			}
 		}
-		return new PostingListItem(patentId, result);
+		return new PostingListItem(patentId, result, documentWordCount);
 	}
 
 	public PostingListItem merge(PostingListItem item) {
@@ -91,7 +92,7 @@ public final class PostingListItem {
 		while (i2 < elements2.length) {
 			result.add(elements2[i2++]);
 		}
-		return new PostingListItem(patentId, result);
+		return new PostingListItem(patentId, result,documentWordCount);
 	}
 
 	@Override
@@ -111,5 +112,13 @@ public final class PostingListItem {
 	@Override
 	public String toString() {
 		return MoreObjects.toStringHelper(this).add("id", patentId).add("positions", positions).toString();
+	}
+
+	public double getTermFrequency() {
+		return positions.size()/documentWordCount;
+	}
+	
+	public int getDocumentWordCount() {
+		return documentWordCount;
 	}
 }

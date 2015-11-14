@@ -45,7 +45,7 @@ public class SearchEngineIndexer {
 			if (docIndex.containsKey(word)) {
 				docIndex.get(word).addPosition(position);
 			} else {
-				docIndex.put(word, new PostingListItem(patent.getPatentId(), position));
+				docIndex.put(word, new PostingListItem(patent.getPatentId(), position, tokens.size()));
 			}
 		}
 		return docIndex;

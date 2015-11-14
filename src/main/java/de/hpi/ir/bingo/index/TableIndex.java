@@ -13,17 +13,19 @@ import java.util.Arrays;
  * TODO!
  */
 final class TableIndex {
+	private final int size;
 	private final String[] keys;
 	private final long[] positions;
 
 	private TableIndex() {
-		this(null, null);
+		this(null, null,0);
 	}
 
-	public TableIndex(String[] keys, long[] positions) {
+	public TableIndex(String[] keys, long[] positions, int size) {
 		Preconditions.checkArgument(keys.length + 1 == positions.length, "please store the length of the file as last position");
 		this.keys = keys;
 		this.positions = positions;
+		this.size = size;
 	}
 
 	public Range getRange(String key) {
@@ -51,6 +53,8 @@ final class TableIndex {
 	public static class TableIndexSerializer extends Serializer<TableIndex> {
 		public void write(Kryo kryo, Output output, TableIndex index) {
 			output.writeInt(index.keys.length);
+			output.writeInt(index.size);
+
 			for (int i = 0; i < index.keys.length; i++) {
 				output.writeString(index.keys[i]);
 			}
@@ -60,12 +64,17 @@ final class TableIndex {
 
 		public TableIndex read(Kryo kryo, Input input, Class<TableIndex> type) {
 			int length = input.readInt();
+			int size = input.readInt();
 			String[] keys = new String[length];
 			for (int i = 0; i < keys.length; i++) {
 				keys[i] = input.readString();
 			}
 			long[] positions = input.readLongs(length + 1);
-			return new TableIndex(keys, positions);
+			return new TableIndex(keys, positions, size);
 		}
+	}
+
+	public int getSize() {
+		return size;
 	}
 }

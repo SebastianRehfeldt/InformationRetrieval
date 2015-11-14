@@ -25,6 +25,7 @@ public final class TableWriter<T> implements AutoCloseable {
 	private final Kryo kryo = TableUtil.getKryo();
 	private String lastKey = null;
 	private long lastIndexPos;
+	private int size;
 
 	public TableWriter(Path file, boolean createIndex, Class<T> clazz, Serializer<T> serializer) {
 		this(file, createIndex, 4096, clazz, serializer);
@@ -52,6 +53,7 @@ public final class TableWriter<T> implements AutoCloseable {
 		Verify.verifyNotNull(key);
 		Verify.verify(lastKey == null || lastKey.compareTo(key) < 0, "please insert in order!");
 		lastKey = key;
+		size++;
 		long position = writer.total();
 		writer.writeString(key);
 		kryo.writeObject(writer, value, serializer);
@@ -74,7 +76,7 @@ public final class TableWriter<T> implements AutoCloseable {
 	public void close() {
 		if (indexKeys != null) {
 			indexPositions.add(writer.total()); // store length of file
-			TableIndex index = new TableIndex(indexKeys.toArray(new String[indexKeys.size()]), Longs.toArray(indexPositions));
+			TableIndex index = new TableIndex(indexKeys.toArray(new String[indexKeys.size()]), Longs.toArray(indexPositions),size);
 			kryo.writeObject(indexWriter, index);
 			indexWriter.close();
 		}

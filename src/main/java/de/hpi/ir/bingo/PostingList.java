@@ -146,6 +146,7 @@ public final class PostingList {
 			for (PostingListItem item : list.items) {
 				int id = item.getPatentId();
 				output.writeVarInt(id - lastId, true);
+				output.writeVarInt(item.getDocumentWordCount(), true);
 				lastId = id;
 
 				IntArrayList positions = item.getPositions();
@@ -166,6 +167,7 @@ public final class PostingList {
 			for (int i = 0; i < size; i++) {
 				int id = input.readVarInt(true) + lastId;
 				lastId = id;
+				int documentWordCount = input.readVarInt(true);
 				int posSize = input.readVarInt(true);
 				IntArrayList posList = new IntArrayList(posSize);
 				int lastPos = 0;
@@ -174,7 +176,7 @@ public final class PostingList {
 					lastPos = pos;
 					posList.add(pos);
 				}
-				items.add(new PostingListItem(id, posList));
+				items.add(new PostingListItem(id, posList,documentWordCount));
 			}
 			return new PostingList(items);
 		}
@@ -185,6 +187,7 @@ public final class PostingList {
 			output.writeInt(list.items.size());
 			for (PostingListItem item : list.items) {
 				output.writeInt(item.getPatentId());
+				output.writeInt(item.getDocumentWordCount());
 				IntArrayList positions = item.getPositions();
 				output.writeInt(positions.size());
 				for (int pos : positions) {
@@ -198,13 +201,14 @@ public final class PostingList {
 			ArrayList<PostingListItem> items = new ArrayList<>(size);
 			for (int i = 0; i < size; i++) {
 				int id = input.readInt();
+				int documentWordCount = input.readInt();
 				int posSize = input.readInt();
 				IntArrayList posList = new IntArrayList(posSize);
 				for (int i1 = 0; i1 < posSize; i1++) {
 					int pos = input.readInt();
 					posList.add(pos);
 				}
-				items.add(new PostingListItem(id, posList));
+				items.add(new PostingListItem(id, posList, documentWordCount));
 			}
 			return new PostingList(items);
 		}
