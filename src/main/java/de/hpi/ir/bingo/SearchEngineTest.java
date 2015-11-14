@@ -39,13 +39,13 @@ public class SearchEngineTest {
 		else
 			myEngine.loadIndex("");
 
-		String query = "comprises AND consists";
+		String query = "data";
 
 		List<String> results;
 
 		start = System.currentTimeMillis();
 
-		results = myEngine.search(query, 0, 0); //topK, prf
+		results = myEngine.search(query, 10, 0); //topK, prf
 
 		time = System.currentTimeMillis() - start;
 

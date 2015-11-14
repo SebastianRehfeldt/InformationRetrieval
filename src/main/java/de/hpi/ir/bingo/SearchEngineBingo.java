@@ -3,10 +3,19 @@ package de.hpi.ir.bingo;
 import java.io.StringReader;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
+import javax.naming.PartialResultException;
+
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
 import java.util.Set;
 
 import de.hpi.ir.bingo.index.Table;
@@ -70,6 +79,8 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 
 	@Override
 	ArrayList<String> search(String query, int topK, int prf) {
+		this.topK = topK;
+		this.prf = prf;
 		PostingList postingList;
 		Set<String> titles = new HashSet<>();
 		String title = "";
@@ -112,7 +123,7 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 //			else{
 //				titles.add(title);
 //			}
-			titles.add(title);
+			titles.add(patent.getPatentId()+" "+title);
 
 		}
 
@@ -120,17 +131,49 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 	}
 
 	private PostingList getRankedPostingLists(List<String> processedQuery) {
-		PostingList postingList = null;
-		double[] tfidf = null;
-		int i = 0;
-		for (String searchWord : processedQuery) {
-			postingList = index.get(searchWord);
-			for(PostingListItem item : postingList.getItems()){
-				tfidf[i++] = item.getTermFrequency() * Math.log((double) patentIndex.getSize()/postingList.getItems().size()); 
+		List<Entry<Double, PostingListItem>> result = Lists.newArrayList();
+		
+		{
+			PostingList postingList = index.get(processedQuery.get(0));
+			if (postingList == null) return new PostingList();
+			for (PostingListItem item : postingList.getItems()) {
+				result.add(Maps.immutableEntry(tfidf(postingList, item), item));
 			}
 		}
 		
-		return null;
+		int i = 0;
+		for (String searchWord : processedQuery.subList(1, processedQuery.size())) {
+			PostingList postingList = index.get(searchWord);
+			if (postingList == null) return new PostingList();
+				
+			List<PostingListItem> items = postingList.getItems();
+			List<Entry<Double, PostingListItem>> newResult = Lists.newArrayList();
+			int i1 = 0, i2 = 0;
+			while (i1 < result.size() && i2 < items.size()) {
+				PostingListItem p1 = result.get(i1).getValue();
+				PostingListItem p2 = items.get(i2);
+				if (p1.getPatentId() < p2.getPatentId()) {
+					i1++;
+				} else if (p1.getPatentId() == p2.getPatentId()) {
+					PostingListItem and = p1.merge(p2);
+					double tfidf = tfidf(postingList, p2);
+					newResult.add(Maps.immutableEntry(result.get(i1).getKey() * tfidf, and));
+					i1++;
+					i2++;
+				} else {
+					i2++;
+				}
+			}
+			result = newResult; 
+		}
+		result.sort(Map.Entry.comparingByKey()); 
+		List<Entry<Double, PostingListItem>> subList = result.subList(0, Math.min(topK, result.size()));
+		List<PostingListItem> resultItems = subList.stream().map(entry -> entry.getValue()).collect(Collectors.toList());
+		return new PostingList(resultItems);
+	}
+
+	private double tfidf(PostingList postingList, PostingListItem item) {
+		return item.getTermFrequency() * Math.log( patentIndex.getSize()/(double)postingList.getItems().size());
 	}
 
 	private enum QueryOperators {

@@ -30,7 +30,7 @@ public final class PostingList {
 		this.items = items;
 	}
 
-	public Collection<PostingListItem> getItems() {
+	public List<PostingListItem> getItems() {
 		return items;
 	}
 

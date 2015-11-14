@@ -115,7 +115,7 @@ public final class PostingListItem {
 	}
 
 	public double getTermFrequency() {
-		return positions.size()/documentWordCount;
+		return positions.size()/(double)documentWordCount;
 	}
 	
 	public int getDocumentWordCount() {
