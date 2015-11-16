@@ -24,6 +24,8 @@ public class SearchEngineIndexer {
 			mergeDocIndexIntoMainIndex(index, docIndex);
 			patents.put(Integer.toString(patent.getPatentId()), patent);
 		});
+		
+		//printIndex(index);
 
 		TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, indexName), true, PostingList.class, serializer);
 		indexWriter.writeMap(index);
@@ -32,6 +34,18 @@ public class SearchEngineIndexer {
 		TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents"), true, PatentData.class, null);
 		patentWriter.writeMap(patents);
 		patentWriter.close();
+	}
+
+	private void printIndex(Map<String, PostingList> index) {
+		System.out.println("--------------     Index     -------------");
+		for(String key : index.keySet()){
+ 			System.out.print("\""+ key+"\": ");
+ 			/*for(PostingListItem postingListItem : index.get(key).getItems()){
+ 				System.out.print(postingListItem.toString()+" ");
+ 			}*/
+ 			System.out.println("");
+ 		}
+		System.out.println("--------------     Index End    -------------");
 	}
 
 	//index creation
@@ -62,4 +76,6 @@ public class SearchEngineIndexer {
 			}
 		}
 	}
+	
+	
 }
