@@ -60,11 +60,12 @@ public class SearchEngineIndexer {
 
 		for (String word : tokens) {
 			position++;
-			if (docIndex.containsKey(word)) {
-				docIndex.get(word).addPosition(position);
-			} else {
-				docIndex.put(word, new PostingListItem(patent.getPatentId(), position, tokens.size()));
+			PostingListItem item = docIndex.get(word);
+			if (item == null) {
+				item = new PostingListItem(patent.getPatentId(), tokens.size());
+				docIndex.put(word, item);
 			}
+			item.addPosition(position);
 		}
 		return docIndex;
 	}

@@ -14,9 +14,8 @@ public final class PostingListItem {
 		this(-1, new IntArrayList());
 	}*/
 
-	public PostingListItem(int patentId, int position, int documentWordCount) {
+	public PostingListItem(int patentId, int documentWordCount) {
 		this(patentId, new IntArrayList(), documentWordCount);
-		this.positions.add(position);
 	}
 
 	public PostingListItem(int id, IntArrayList posList, int documentWordCount) {
