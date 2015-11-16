@@ -2,11 +2,13 @@ package de.hpi.ir.bingo;
 
 import java.io.StringReader;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import com.esotericsoftware.kryo.Serializer;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import de.hpi.ir.bingo.index.TableWriter;
@@ -38,8 +40,10 @@ public class SearchEngineIndexer {
 
 	private void printIndex(Map<String, PostingList> index) {
 		System.out.println("--------------     Index     -------------");
-		for(String key : index.keySet()){
- 			System.out.print("\""+ key+"\": ");
+		List<String>keys = Lists.newArrayList(index.keySet());
+		Collections.sort(keys);
+		for(String key : keys){
+ 			System.out.print("\""+ key+"\"");
  			/*for(PostingListItem postingListItem : index.get(key).getItems()){
  				System.out.print(postingListItem.toString()+" ");
  			}*/
