@@ -27,7 +27,7 @@ public class SearchEngineIndexer {
 			patents.put(Integer.toString(patent.getPatentId()), patent);
 		});
 		
-		//printIndex(index);
+		//writeIndexTerms(index);
 
 		TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, indexName), true, PostingList.class, serializer);
 		indexWriter.writeMap(index);

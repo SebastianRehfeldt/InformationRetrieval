@@ -1,7 +1,12 @@
 package de.hpi.ir.bingo;
 
-import java.util.ArrayList;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+
+import com.google.common.base.Charsets;
+import com.google.common.collect.ImmutableList;
 
 /**
  * @author: Bingo
@@ -39,25 +44,33 @@ public class SearchEngineTest {
 		else
 			myEngine.loadIndex("");
 
-		String query = "data";
 
-		List<String> results;
+		Writer resultWriter = Files.newBufferedWriter(Paths.get("queryresults.txt"), Charsets.UTF_8);
+		List<String> queries = ImmutableList.of("processing", "computers", "'mobile devices'", "data");
 
-		start = System.currentTimeMillis();
+		for (String query : queries) {
+			start = System.currentTimeMillis();
 
-		results = myEngine.search(query, 10, 0); //topK, prf
+			List<String> results = myEngine.search(query, 10, 0); //topK, prf
 
-		time = System.currentTimeMillis() - start;
+			time = System.currentTimeMillis() - start;
 
-		System.out.print("Searching Time:\t" + time + "\tms\n");
+			System.out.print("Searching Time:\t" + time + "\tms\n");
 
-		if (results.isEmpty()) {
-			System.out.println("No results found");
-		} else {
-			for (String result : results) {
-				System.out.println(result);
+			resultWriter.write("\"" + query + "\"\n");
+			if (results.isEmpty()) {
+				System.out.println("No results found");
+			} else {
+				for (String result : results) {
+					System.out.println(result);
+					resultWriter.write(result + "\n");
+				}
 			}
+			resultWriter.write("\n");
 		}
+		resultWriter.close();
+
+		//myEngine.writeIndexTerms();
 	}
 
 }

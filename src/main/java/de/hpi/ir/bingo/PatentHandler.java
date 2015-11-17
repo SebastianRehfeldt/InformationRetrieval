@@ -73,6 +73,12 @@ public class PatentHandler extends DefaultHandler {
 
 	@Override
 	public void startElement(String uri, String name, String qName, Attributes atts) {
+		if (name.equals("us-patent-grant")) {
+			currentId.setLength(0);
+			currentTitle.setLength(0);
+			currentAbstract.setLength(0);
+			currentApplType = "";
+		}
 		if (name.equals("application-reference")) {
 			currentApplType = atts.getValue("appl-type");
 		}
@@ -81,17 +87,13 @@ public class PatentHandler extends DefaultHandler {
 
 	@Override
 	public void endElement(String uri, String name, String qName) {
-		if (qName.equals("us-patent-grant")) {
+		if (name.equals("us-patent-grant")) {
 			if (currentApplType.equals("utility")) {
 				int id = Integer.parseInt(currentId.toString());
 				String title = currentTitle.toString().replaceAll("\\s+", " "); // remove duplicate whitespace
 				String abstractText = currentAbstract.toString().replaceAll("\\s+", " ");
 				patentComsumer.accept(new PatentData(id, title, abstractText));
 			}
-			currentId.setLength(0);
-			currentTitle.setLength(0);
-			currentAbstract.setLength(0);
-			currentApplType = "";
 		}
 		parents.pop();
 	}
@@ -104,7 +106,7 @@ public class PatentHandler extends DefaultHandler {
 		if (parents.peek().equals("doc-number") && parents.get(parents.size() - 3).equals("publication-reference")) {
 			currentId.append(ch, start, length);
 		}
-		if (parents.peek().equals("p") && parents.get(parents.size() - 2).equals("abstract")) {
+		if (parents.contains("abstract")) {
 			currentAbstract.append(ch, start, length);
 		}
 	}

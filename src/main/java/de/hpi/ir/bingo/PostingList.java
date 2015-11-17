@@ -2,6 +2,7 @@ package de.hpi.ir.bingo;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -31,7 +32,7 @@ public final class PostingList {
 	}
 
 	public List<PostingListItem> getItems() {
-		return items;
+		return Collections.unmodifiableList(items);
 	}
 
 	public void addItem(PostingListItem item) {

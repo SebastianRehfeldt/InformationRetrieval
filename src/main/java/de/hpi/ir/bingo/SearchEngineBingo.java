@@ -1,23 +1,25 @@
 package de.hpi.ir.bingo;
 
+import java.io.IOException;
+import java.io.StringReader;
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+
+import com.google.common.base.Charsets;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import de.hpi.ir.bingo.index.Table;
 import de.hpi.ir.bingo.index.TableReader;
 import de.hpi.ir.bingo.index.TableWriter;
-
-import java.io.StringReader;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 
 /**
@@ -161,7 +163,7 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 			}
 			result = newResult;
 		}
-		result.sort(Map.Entry.comparingByKey());
+		result.sort(Map.Entry.<Double, PostingListItem>comparingByKey().reversed());
 		List<PostingListItem> resultItems = result.stream().map(Entry::getValue).collect(Collectors.toList());
 		return resultItems;
 	}
@@ -223,8 +225,9 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 			}
 			postingList = postingList.combinePhrase(list);
 		}
-		List<PostingListItem> items = postingList.getItems();
-		items.sort(Comparator.comparing((item) -> item.getPositions().size()));
+		List<PostingListItem> items = Lists.newArrayList(postingList.getItems());
+		Comparator<PostingListItem> comparing = Comparator.comparing((item) -> item.getPositions().size());
+		items.sort(comparing.reversed());
 		return items;
 	}
 
@@ -238,7 +241,13 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 		});
 	}
 
-	void printIndex() {
-		System.out.println(index.toString());
+	void writeIndexTerms() throws IOException {
+		Writer writer = Files.newBufferedWriter(Paths.get("indexterms.txt"), Charsets.UTF_8);
+		TableReader<PostingList> reader = new TableReader<PostingList>(Paths.get("compressed-index"), PostingList.class, PostingList.COMPRESSING_SERIALIZER);
+		Entry<String, PostingList> entry;
+		while ((entry = reader.readNext()) != null) {
+			writer.write(entry.getKey() + "\n");
+		}
+		writer.close();
 	}
 }
