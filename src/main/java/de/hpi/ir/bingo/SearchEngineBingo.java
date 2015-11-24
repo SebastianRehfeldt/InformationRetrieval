@@ -1,5 +1,14 @@
 package de.hpi.ir.bingo;
 
+import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+import de.hpi.ir.bingo.index.Table;
+import de.hpi.ir.bingo.index.TableReader;
+import de.hpi.ir.bingo.index.TableWriter;
+import de.hpi.ir.bingo.index.Token;
+
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.Writer;
@@ -13,14 +22,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
-import de.hpi.ir.bingo.index.Table;
-import de.hpi.ir.bingo.index.TableReader;
-import de.hpi.ir.bingo.index.TableWriter;
-
 
 /**
  * @author: Bingo
@@ -30,8 +31,9 @@ import de.hpi.ir.bingo.index.TableWriter;
  * multi-threaded? - stemming? - stopword removal? - index algorithm? - etc. <p/> Keep in mind to
  * include your implementation decisions also in the pdf file of each assignment
  */
-public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with your search engine's name, i.e. SearchEngineMyTeamName
+public class SearchEngineBingo extends SearchEngine {
 
+	public static final int PRF_EXTENSION_SIZE = 5;
 	private Table<PostingList> index;
 	private Table<PatentData> patentIndex;
 	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
@@ -107,6 +109,33 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 
 
 		ArrayList<String> titles = new ArrayList<>();
+
+		if (prf > 0) {
+			Map<String, Double> importantTokens = Maps.newHashMap();
+			for (PostingListItem patent : result.subList(0, Math.min(prf, result.size()))) {
+				PatentData patentData = patentIndex.get(Integer.toString(patent.getPatentId()));
+				assert patentData != null;
+				for (Token token : patentData.getImportantTerms()) {
+					String key = token.getText();
+					if (importantTokens.containsKey(key)) {
+						importantTokens.put(key, importantTokens.get(key) + token.getTfidf());
+					} else {
+						importantTokens.put(key, token.getTfidf());
+					}
+				}
+			}
+			// extend query
+			Comparator<Entry<String, Double>> c = Entry.comparingByValue();
+			List<Entry<String, Double>> entries = Lists.newArrayList(importantTokens.entrySet());
+			entries.sort(c.reversed());
+			List<Entry<String, Double>> topToken = entries.subList(0, Math.min(PRF_EXTENSION_SIZE, entries.size()));
+			String extendedQuery = query + " OR ";
+			for (Entry<String, Double> entry : topToken) {
+				extendedQuery += " " + entry.getKey();
+			}
+			return search(extendedQuery, topK, 0);
+		}
+
 		//find for each postinglistitem the patent and retrieve the title of this patent
 		for (PostingListItem patent : result.subList(0, Math.min(topK, result.size()))) {
 			PatentData patentData = patentIndex.get(Integer.toString(patent.getPatentId()));
@@ -122,8 +151,8 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 //				titles.add(title);
 //			}
 			titles.add(patent.getPatentId() + " " + title);
-
 		}
+
 
 		return titles;
 	}
@@ -237,7 +266,7 @@ public class SearchEngineBingo extends SearchEngine { // Replace 'Template' with
 
 		PatentHandler.parseXml(fileName, (patent) -> {
 			System.out.printf("%d: %s\n", patent.getPatentId(), patent.getTitle());
-			System.out.println(tokenizer.tokenizeStopStem(new StringReader(patent.getAbstractText())));
+			System.out.println(tokenizer.tokenizeStopStem(patent.getAbstractText()));
 		});
 	}
 

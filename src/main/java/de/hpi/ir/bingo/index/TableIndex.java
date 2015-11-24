@@ -12,7 +12,7 @@ import java.util.Arrays;
 /**
  * TODO!
  */
-final class TableIndex {
+public final class TableIndex {
 	private final int size;
 	private final String[] keys;
 	private final long[] positions;

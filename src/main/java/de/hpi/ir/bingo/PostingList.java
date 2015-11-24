@@ -140,6 +140,10 @@ public final class PostingList {
 		return result;
 	}
 
+	public int getDocumentCount() {
+		return items.size();
+	}
+
 	private static class PostingListCompressingSerializer extends Serializer<PostingList> {
 		public void write(Kryo kryo, Output output, PostingList list) {
 			output.writeVarInt(list.items.size(), true);

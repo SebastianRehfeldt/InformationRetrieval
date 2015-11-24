@@ -8,6 +8,7 @@ import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.util.List;
 
 public class SearchEngineTokenizer {
@@ -33,4 +34,7 @@ public class SearchEngineTokenizer {
 		}
 	}
 
+	public List<String> tokenizeStopStem(String text) {
+		return tokenizeStopStem(new StringReader(text));
+	}
 }

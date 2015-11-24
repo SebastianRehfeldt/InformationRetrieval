@@ -1,17 +1,20 @@
 package de.hpi.ir.bingo;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+import com.esotericsoftware.kryo.Serializer;
+
+import de.hpi.ir.bingo.index.TableReader;
+import de.hpi.ir.bingo.index.TableUtil;
+import de.hpi.ir.bingo.index.TableWriter;
+
 import java.io.StringReader;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import com.esotericsoftware.kryo.Serializer;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
-import de.hpi.ir.bingo.index.TableWriter;
 
 public class SearchEngineIndexer {
 	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
@@ -26,29 +29,31 @@ public class SearchEngineIndexer {
 			mergeDocIndexIntoMainIndex(index, docIndex);
 			patents.put(Integer.toString(patent.getPatentId()), patent);
 		});
-		
+
 		//writeIndexTerms(index);
 
 		TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, indexName), true, PostingList.class, serializer);
 		indexWriter.writeMap(index);
 		indexWriter.close();
 
-		TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents"), true, PatentData.class, null);
+		TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents-temp"), true, PatentData.class, null);
 		patentWriter.writeMap(patents);
 		patentWriter.close();
+
+		calculateImportantTerms(directory, indexName, serializer);
 	}
 
 	private void printIndex(Map<String, PostingList> index) {
 		System.out.println("--------------     Index     -------------");
-		List<String>keys = Lists.newArrayList(index.keySet());
+		List<String> keys = Lists.newArrayList(index.keySet());
 		Collections.sort(keys);
-		for(String key : keys){
- 			System.out.print("\""+ key+"\"");
+		for (String key : keys) {
+			System.out.print("\"" + key + "\"");
  			/*for(PostingListItem postingListItem : index.get(key).getItems()){
  				System.out.print(postingListItem.toString()+" ");
  			}*/
- 			System.out.println("");
- 		}
+			System.out.println("");
+		}
 		System.out.println("--------------     Index End    -------------");
 	}
 
@@ -81,6 +86,30 @@ public class SearchEngineIndexer {
 			}
 		}
 	}
-	
-	
+
+	/**
+	 * Reads the postinglists to calculate idf values. Reads the patent index and calculates
+	 * the important terms according to their idf values.
+	 */
+	private void calculateImportantTerms(String directory, String indexName, Serializer<PostingList> serializer) {
+		int totalDocumentCount = TableUtil.getTableIndex(Paths.get(directory, "patents-temp")).getSize();
+		TableReader<PostingList> postingReader = new TableReader<>(Paths.get(directory, indexName), PostingList.class, serializer);
+		Map<String, Double> idf = Maps.newHashMap();
+		Map.Entry<String, PostingList> token;
+		while((token = postingReader.readNext()) != null) {
+			double idfValue = Math.log(totalDocumentCount / (double) token.getValue().getDocumentCount());
+			idf.put(token.getKey(), idfValue);
+		}
+		postingReader.close();
+
+		TableReader<PatentData> patentReader = new TableReader<>(Paths.get(directory, "patents-temp"), PatentData.class, null);
+		TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents"), true, PatentData.class, null);
+		Map.Entry<String, PatentData> patent;
+		while((patent = patentReader.readNext()) != null) {
+			patent.getValue().calculateImportantTerms(idf);
+			patentWriter.put(patent.getKey(), patent.getValue());
+		}
+		patentReader.close();
+		patentWriter.close();
+	}
 }

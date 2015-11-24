@@ -26,13 +26,12 @@ public final class Table<T> implements AutoCloseable {
 	}
 
 	public static <T> Table<T> open(Path file, Class<T> clazz, Serializer<T> serializer) {
-		Path indexPath = TableUtil.getIndexPath(file);
-		Input indexReader = TableUtil.createInput(indexPath);
-		TableIndex index = TableUtil.getKryo().readObject(indexReader, TableIndex.class);
-		indexReader.close();
+		TableIndex index = TableUtil.getTableIndex(file);
 		RandomAccessInput input = TableUtil.createInput(file);
 		return new Table<>(input, index, clazz, serializer);
 	}
+
+
 
 	public T get(String key) {
 		TableIndex.Range range = index.getRange(key);

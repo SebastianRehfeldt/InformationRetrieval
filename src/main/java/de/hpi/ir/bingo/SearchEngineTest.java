@@ -46,12 +46,12 @@ public class SearchEngineTest {
 
 
 		Writer resultWriter = Files.newBufferedWriter(Paths.get("queryresults.txt"), Charsets.UTF_8);
-		List<String> queries = ImmutableList.of("processing", "computers", "'mobile devices'", "data");
+		List<String> queries = ImmutableList.of("digital", "rootkits", "network access");
 
 		for (String query : queries) {
 			start = System.currentTimeMillis();
 
-			List<String> results = myEngine.search(query, 10, 0); //topK, prf
+			List<String> results = myEngine.search(query, 10, 2); //topK, prf
 
 			time = System.currentTimeMillis() - start;
 
