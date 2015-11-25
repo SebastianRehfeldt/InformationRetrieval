@@ -16,13 +16,6 @@ public final class PrefixQuery implements QueryPart {
 		this.prefix = prefix;
 	}
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof PrefixQuery)) return false;
-		PrefixQuery that = (PrefixQuery) o;
-		return Objects.equal(prefix, that.prefix);
-	}
 
 	@Override
 	public QueryResultList execute(Table<PostingList> index) {
@@ -30,12 +23,20 @@ public final class PrefixQuery implements QueryPart {
 		if (prefixResult.isEmpty()) {
 			return new QueryResultList();
 		}
-		QueryResultList postingList = new QueryResultList(prefixResult.get(0).getValue());
+		QueryResultList resultList = new QueryResultList(prefixResult.get(0).getValue());
 		for (int i = 1; i < prefixResult.size(); i++) {
 			QueryResultList other = new QueryResultList(prefixResult.get(i).getValue());
-			postingList = postingList.or(other);
+			resultList = resultList.or(other);
 		}
-		return postingList;
+		return resultList;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof PrefixQuery)) return false;
+		PrefixQuery that = (PrefixQuery) o;
+		return Objects.equal(prefix, that.prefix);
 	}
 
 	@Override

@@ -32,25 +32,25 @@ public final class NormalQuery implements Query {
 		if (parts.isEmpty()) {
 			return Collections.emptyList();
 		}
-		QueryResultList postingList = parts.get(0).execute(index);
-		postingList.calculateTfidfScores(1.0, patents.getSize());
+		QueryResultList resultList = parts.get(0).execute(index);
+		resultList.calculateTfidfScores(1.0, patents.getSize());
 		for (int i = 1; i < parts.size(); i++) {
-			QueryResultList postingList2 = parts.get(0).execute(index);
-			postingList2.calculateTfidfScores(1.0, patents.getSize());
-			postingList = postingList.combine(postingList2);
+			QueryResultList resultList2 = parts.get(0).execute(index);
+			resultList2.calculateTfidfScores(1.0, patents.getSize());
+			resultList = resultList.combine(resultList2);
 		}
 
-		List<QueryResultItem> result = Lists.newArrayList(postingList.getItems());
+		List<QueryResultItem> result = Lists.newArrayList(resultList.getItems());
 		result.sort(QueryResultList.SCORE_COMPARATOR);
 
 		if (prf > 0) {
 			List<String> topToken = getPrfToken(result, patents);
 			for (String stringDoubleEntry : topToken) {
-				QueryResultList postingList2 = new TermQuery(stringDoubleEntry).execute(index);
-				postingList2.calculateTfidfScores(0.1, patents.getSize());
-				postingList = postingList.combine(postingList2);
+				QueryResultList resultList2 = new TermQuery(stringDoubleEntry).execute(index);
+				resultList2.calculateTfidfScores(0.1, patents.getSize());
+				resultList = resultList.combine(resultList2);
 			}
-			result = Lists.newArrayList(postingList.getItems());
+			result = Lists.newArrayList(resultList.getItems());
 			result.sort(QueryResultList.SCORE_COMPARATOR);
 		}
 		return result;

@@ -16,6 +16,17 @@ public final class PhraseQuery implements QueryPart {
 	}
 
 	@Override
+	public QueryResultList execute(Table<PostingList> index) {
+		QueryResultList postingList = parts.get(0).execute(index);
+
+		for (int i = 1; i < parts.size(); i++) {
+			QueryResultList list = parts.get(i).execute(index);
+			postingList = postingList.combinePhrase(list);
+		}
+		return postingList;
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof PhraseQuery)) return false;
@@ -33,16 +44,5 @@ public final class PhraseQuery implements QueryPart {
 		return Objects.toStringHelper(this)
 				.addValue(parts)
 				.toString();
-	}
-
-	@Override
-	public QueryResultList execute(Table<PostingList> index) {
-		QueryResultList postingList = parts.get(0).execute(index);
-
-		for (int i = 1; i < parts.size(); i++) {
-			QueryResultList list = parts.get(i).execute(index);
-			postingList = postingList.combinePhrase(list);
-		}
-		return postingList;
 	}
 }

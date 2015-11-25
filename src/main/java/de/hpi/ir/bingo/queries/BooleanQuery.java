@@ -50,29 +50,29 @@ public final class BooleanQuery implements Query {
 
 	@Override
 	public List<QueryResultItem> execute(Table<PostingList> index, Table<PatentData> patents) {
-		if (parts.isEmpty()) {
-			return Collections.emptyList();
-		}
-		QueryResultList postingList = parts.get(0).execute(index);
-		postingList.calculateTfidfScores(1.0, patents.getSize());
-		for (int i = 1; i < parts.size(); i++) {
-			QueryResultList postingList2 = parts.get(i).execute(index);
-			postingList2.calculateTfidfScores(1.0, patents.getSize());
-
-			switch (queryOperator) {
-				case AND:
-					postingList = postingList.and(postingList2);
-					break;
-				case OR:
-					postingList = postingList.or(postingList2);
-					break;
-				case NOT:
-					postingList = postingList.not(postingList2);
-					break;
+			if (parts.isEmpty()) {
+				return Collections.emptyList();
 			}
-		}
-		List<QueryResultItem> result = Lists.newArrayList(postingList.getItems());
-		result.sort(QueryResultList.SCORE_COMPARATOR);
-		return result;
+			QueryResultList resultList = parts.get(0).execute(index);
+			resultList.calculateTfidfScores(1.0, patents.getSize());
+			for (int i = 1; i < parts.size(); i++) {
+				QueryResultList resultList2 = parts.get(i).execute(index);
+				resultList2.calculateTfidfScores(1.0, patents.getSize());
+
+				switch (queryOperator) {
+					case AND:
+						resultList = resultList.and(resultList2);
+						break;
+					case OR:
+						resultList = resultList.or(resultList2);
+						break;
+					case NOT:
+						resultList = resultList.not(resultList2);
+						break;
+				}
+			}
+			List<QueryResultItem> result = Lists.newArrayList(resultList.getItems());
+			result.sort(QueryResultList.SCORE_COMPARATOR);
+			return result;
 	}
 }

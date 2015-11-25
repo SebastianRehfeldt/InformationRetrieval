@@ -12,7 +12,7 @@ import de.hpi.ir.bingo.SearchEngineTokenizer;
 
 public class QueryParser {
 
-	private static final String queryPartRegex = "(AND|OR|NOT)|#([0-9]+)|\\\"(.+?)\\\"|([^ ]+)";
+	private static final String queryPartRegex = "(AND|OR|NOT)|#([0-9]+)|\"(.+?)\"|([^ ]+)";
 	private static final Pattern queryPartPattern = Pattern.compile(queryPartRegex);
 
 	private static final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();

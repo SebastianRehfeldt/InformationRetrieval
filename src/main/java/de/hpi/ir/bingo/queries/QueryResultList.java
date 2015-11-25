@@ -3,6 +3,7 @@ package de.hpi.ir.bingo.queries;
 import java.util.Comparator;
 import java.util.List;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.google.common.collect.Lists;
@@ -13,7 +14,7 @@ import de.hpi.ir.bingo.PostingListItem;
 public class QueryResultList {
 	public static final Comparator<? super QueryResultItem> SCORE_COMPARATOR = Comparator.comparing(QueryResultItem::getScore).reversed();
 
-	private static final double MISSING_SCORE = Math.log(1.0 / 100_000);
+	static final double MISSING_SCORE = Math.log(1.0 / 100_000);
 
 	private final List<QueryResultItem> items;
 
@@ -31,9 +32,10 @@ public class QueryResultList {
 		this(1);
 	}
 
-	private QueryResultList(int combinations) {
+	public QueryResultList(int combinations) {
 		this(Lists.newArrayList(), combinations);
 	}
+
 	private QueryResultList(List<QueryResultItem> items, int combinations) {
 		this.items = items;
 		this.combinations = combinations;
@@ -168,9 +170,9 @@ public class QueryResultList {
 			if (p1.getPatentId() < p2.getPatentId()) {
 				i1++;
 			} else if (p1.getPatentId() == p2.getPatentId()) {
-				PostingListItem union = p1.getItem().combinePhrase(p2.getItem());
-				if (union.getPositions().size() > 0) {
-					result.addItem(new QueryResultItem(union, 0));
+				PostingListItem combined = p1.getItem().combinePhrase(p2.getItem());
+				if (combined.getPositions().size() > 0) {
+					result.addItem(new QueryResultItem(combined, 0));
 				}
 				i1++;
 				i2++;
@@ -193,5 +195,27 @@ public class QueryResultList {
 
 	public List<QueryResultItem> getItems() {
 		return items;
+	}
+
+	@Override
+	public String toString() {
+		return Objects.toStringHelper(this)
+				.add("items", items)
+				.add("combinations", combinations)
+				.toString();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof QueryResultList)) return false;
+		QueryResultList that = (QueryResultList) o;
+		return combinations == that.combinations &&
+				Objects.equal(items, that.items);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(items, combinations);
 	}
 }
