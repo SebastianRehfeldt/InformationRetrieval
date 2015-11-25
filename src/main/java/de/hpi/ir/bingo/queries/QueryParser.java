@@ -20,7 +20,7 @@ public class QueryParser {
 	public static Query parse(String query) {
 
 		Matcher m = queryPartPattern.matcher(query);
-		List<Query> queryParts = Lists.newArrayList();
+		List<QueryPart> queryParts = Lists.newArrayList();
 		QueryOperators queryOperator = null;
 		int prf = 0;
 		while (m.find()) {
@@ -34,7 +34,7 @@ public class QueryParser {
 			}
 			String phrase = m.group(3);
 			if (phrase != null) {
-				List<Query> parts = parseParts(phrase);
+				List<QueryPart> parts = parseParts(phrase);
 				queryParts.add(new PhraseQuery(parts));
 			}
 			String term = m.group(4);
@@ -50,7 +50,7 @@ public class QueryParser {
 		}
 	}
 
-	private static Query parsePart(String term) {
+	private static QueryPart parsePart(String term) {
 		if (term.endsWith("*")) {
 			return new PrefixQuery(term.substring(0, term.length()-1));
 		} else {
@@ -58,8 +58,8 @@ public class QueryParser {
 		}
 	}
 
-	private static List<Query> parseParts(String phrase) {
-		List<Query> parts = Arrays.stream(phrase.split(" ")).map(QueryParser::parsePart).collect(Collectors.toList());
+	private static List<QueryPart> parseParts(String phrase) {
+		List<QueryPart> parts = Arrays.stream(phrase.split(" ")).map(QueryParser::parsePart).collect(Collectors.toList());
 		return parts;
 	}
 

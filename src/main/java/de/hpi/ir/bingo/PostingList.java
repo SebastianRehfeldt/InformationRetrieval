@@ -1,8 +1,8 @@
 package de.hpi.ir.bingo;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -27,7 +27,7 @@ public final class PostingList {
 		this(Lists.newArrayList());
 	}
 
-	public PostingList(List<PostingListItem> items) {
+	PostingList(List<PostingListItem> items) {
 		this.items = items;
 	}
 
@@ -38,106 +38,6 @@ public final class PostingList {
 	public void addItem(PostingListItem item) {
 		Verify.verify(items.isEmpty() || items.get(items.size() - 1).getPatentId() < item.getPatentId());
 		items.add(item);
-	}
-
-	public PostingList and(PostingList other) {
-		Preconditions.checkNotNull(other);
-		List<PostingListItem> items2 = other.items;
-		int i1 = 0, i2 = 0;
-		PostingList result = new PostingList();
-		while (i1 < items.size() && i2 < items2.size()) {
-			PostingListItem p1 = items.get(i1);
-			PostingListItem p2 = items2.get(i2);
-			if (p1.getPatentId() < p2.getPatentId()) {
-				i1++;
-			} else if (p1.getPatentId() == p2.getPatentId()) {
-				PostingListItem and = p1.merge(p2);
-				result.addItem(and);
-				i1++;
-				i2++;
-			} else {
-				i2++;
-			}
-		}
-		return result;
-	}
-
-	public PostingList or(PostingList other) {
-		Preconditions.checkNotNull(other);
-		List<PostingListItem> items2 = other.items;
-		int i1 = 0, i2 = 0;
-		PostingList result = new PostingList();
-		while (i1 < items.size() && i2 < items2.size()) {
-			PostingListItem p1 = items.get(i1);
-			PostingListItem p2 = items2.get(i2);
-			if (p1.getPatentId() < p2.getPatentId()) {
-				result.addItem(p1);
-				i1++;
-			} else if (p1.getPatentId() == p2.getPatentId()) {
-				PostingListItem and = p1.merge(p2);
-				result.addItem(and);
-				i1++;
-				i2++;
-			} else {
-				result.addItem(p2);
-				i2++;
-			}
-		}
-		while (i1 < items.size()) {
-			result.addItem(items.get(i1++));
-		}
-		while (i2 < items2.size()) {
-			result.addItem(items2.get(i2++));
-		}
-		return result;
-	}
-
-	public PostingList not(PostingList other) {
-		Preconditions.checkNotNull(other);
-		List<PostingListItem> items2 = other.items;
-		int i1 = 0, i2 = 0;
-		PostingList result = new PostingList();
-		while (i1 < items.size() && i2 < items2.size()) {
-			PostingListItem p1 = items.get(i1);
-			PostingListItem p2 = items2.get(i2);
-			if (p1.getPatentId() < p2.getPatentId()) {
-				result.addItem(p1);
-				i1++;
-			} else if (p1.getPatentId() == p2.getPatentId()) {
-				i1++;
-				i2++;
-			} else {
-				i2++;
-			}
-		}
-		while (i1 < items.size()) {
-			result.addItem(items.get(i1++));
-		}
-		return result;
-	}
-
-	public PostingList combinePhrase(PostingList postingList) {
-		Preconditions.checkNotNull(postingList);
-		List<PostingListItem> items2 = postingList.items;
-		int i1 = 0, i2 = 0;
-		PostingList result = new PostingList();
-		while (i1 < items.size() && i2 < items2.size()) {
-			PostingListItem p1 = items.get(i1);
-			PostingListItem p2 = items2.get(i2);
-			if (p1.getPatentId() < p2.getPatentId()) {
-				i1++;
-			} else if (p1.getPatentId() == p2.getPatentId()) {
-				PostingListItem union = p1.combinePhrase(p2);
-				if (union.getPositions().size() > 0) {
-					result.addItem(union);
-				}
-				i1++;
-				i2++;
-			} else {
-				i2++;
-			}
-		}
-		return result;
 	}
 
 	public int getDocumentCount() {
@@ -181,7 +81,7 @@ public final class PostingList {
 					lastPos = pos;
 					posList.add(pos);
 				}
-				items.add(new PostingListItem(id, posList,documentWordCount));
+				items.add(new PostingListItem(id, posList, documentWordCount));
 			}
 			return new PostingList(items);
 		}

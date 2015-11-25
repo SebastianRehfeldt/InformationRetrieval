@@ -2,6 +2,7 @@ package de.hpi.ir.bingo;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
+import com.google.common.base.Verify;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
@@ -9,6 +10,8 @@ public final class PostingListItem {
 	private final int patentId;
 	private final IntArrayList positions;
 	private final int documentWordCount;
+
+	private double score = 0;
 
 	/*private PostingListItem() {
 		this(-1, new IntArrayList());
@@ -91,7 +94,7 @@ public final class PostingListItem {
 		while (i2 < elements2.length) {
 			result.add(elements2[i2++]);
 		}
-		return new PostingListItem(patentId, result,documentWordCount);
+		return new PostingListItem(patentId, result, documentWordCount);
 	}
 
 	@Override

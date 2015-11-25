@@ -69,15 +69,15 @@ public class PatentData implements Serializable {
 				tf.put(token, 1);
 			}
 		}
-		List<Token> tfidf = Lists.newArrayList();
+		List<Token> tfidfToken = Lists.newArrayList();
 		for (Map.Entry<String, Integer> entry : tf.entrySet()) {
 			String key = entry.getKey();
 			Double value = entry.getValue() * idf.get(key);
-			tfidf.add(new Token(key, value));
+			tfidfToken.add(new Token(key, value));
 		}
 		Comparator<Token> c = Comparator.comparing(Token::getTfidf);
-		tfidf.sort(c.reversed());
-		List<Token> terms = tfidf.stream().limit(MAXIMPORTANTTERMS).collect(Collectors.toList());
+		tfidfToken.sort(c.reversed());
+		List<Token> terms = tfidfToken.stream().limit(MAXIMPORTANTTERMS).collect(Collectors.toList());
 		importantTerms.addAll(terms);
 	}
 

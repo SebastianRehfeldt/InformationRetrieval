@@ -2,7 +2,10 @@ package de.hpi.ir.bingo.queries;
 
 import com.google.common.base.Objects;
 
-public final class TermQuery implements Query {
+import de.hpi.ir.bingo.PostingList;
+import de.hpi.ir.bingo.index.Table;
+
+public final class TermQuery implements QueryPart {
 	private final String term;
 
 	public TermQuery(String term) {
@@ -25,7 +28,13 @@ public final class TermQuery implements Query {
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
-				.add("term", term)
+				.addValue(term)
 				.toString();
+	}
+
+	@Override
+	public QueryResultList execute(Table<PostingList> index) {
+		PostingList postingList = index.get(term);
+		return postingList == null ? new QueryResultList() : new QueryResultList(postingList);
 	}
 }

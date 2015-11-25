@@ -1,13 +1,17 @@
 package de.hpi.ir.bingo.queries;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.google.common.base.Objects;
 
-public final class PhraseQuery implements Query {
-	private final List<Query> parts;
+import de.hpi.ir.bingo.PostingList;
+import de.hpi.ir.bingo.index.Table;
 
-	public PhraseQuery(List<Query> parts) {
+public final class PhraseQuery implements QueryPart {
+	private final List<QueryPart> parts;
+
+	public PhraseQuery(List<QueryPart> parts) {
 		this.parts = parts;
 	}
 
@@ -27,7 +31,18 @@ public final class PhraseQuery implements Query {
 	@Override
 	public String toString() {
 		return Objects.toStringHelper(this)
-				.add("parts", parts)
+				.addValue(parts)
 				.toString();
+	}
+
+	@Override
+	public QueryResultList execute(Table<PostingList> index) {
+		QueryResultList postingList = parts.get(0).execute(index);
+
+		for (int i = 1; i < parts.size(); i++) {
+			QueryResultList list = parts.get(i).execute(index);
+			postingList = postingList.combinePhrase(list);
+		}
+		return postingList;
 	}
 }
