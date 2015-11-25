@@ -13,9 +13,10 @@ import java.util.List;
 
 public class SearchEngineTokenizer {
 
+	private final Analyzer analyzer = new CustomAnalyzer();
+
 	public List<String> tokenizeStopStem(Reader reader) {
 
-		Analyzer analyzer = new CustomAnalyzer();
 		try {
 			TokenStream stream = analyzer.tokenStream("", reader);
 			//stream = new EnglishMinimalStemFilter(stream);
@@ -28,6 +29,7 @@ public class SearchEngineTokenizer {
 				result.add(token);
 				// TODO get position, return objects
 			}
+			stream.close();
 			return result;
 		} catch (IOException e) {
 			throw new RuntimeException(e);

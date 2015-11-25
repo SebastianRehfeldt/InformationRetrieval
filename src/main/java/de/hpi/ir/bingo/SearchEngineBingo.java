@@ -1,14 +1,5 @@
 package de.hpi.ir.bingo;
 
-import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
-import de.hpi.ir.bingo.index.Table;
-import de.hpi.ir.bingo.index.TableReader;
-import de.hpi.ir.bingo.index.TableWriter;
-import de.hpi.ir.bingo.index.Token;
-
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.Writer;
@@ -21,6 +12,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+
+import com.google.common.base.Charsets;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+import de.hpi.ir.bingo.index.Table;
+import de.hpi.ir.bingo.index.TableReader;
+import de.hpi.ir.bingo.index.TableWriter;
+import de.hpi.ir.bingo.index.Token;
+import de.hpi.ir.bingo.queries.QueryOperators;
 
 
 /**
@@ -199,10 +200,6 @@ public class SearchEngineBingo extends SearchEngine {
 
 	private double tfidf(PostingList postingList, PostingListItem item) {
 		return item.getTermFrequency() * Math.log(patentIndex.getSize() / (double) postingList.getItems().size());
-	}
-
-	private enum QueryOperators {
-		AND, OR, NOT
 	}
 
 	private List<PostingListItem> getPostingListForQuery(List<String> processedQuery, QueryOperators operator) {
