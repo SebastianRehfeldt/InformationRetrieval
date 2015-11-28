@@ -19,6 +19,12 @@ public class QueryParserTest {
 	}
 
 	@Test
+	public void testParseDash() throws Exception {
+		assertThat(QueryParser.parse("foo-bar")).isEqualTo(new NormalQuery(ImmutableList.of(
+				new TermQuery("foo"), new TermQuery("bar")), 0));
+	}
+
+	@Test
 	public void testParsePhrase() throws Exception {
 		assertThat(QueryParser.parse("\"foo bar\"")).isEqualTo(new NormalQuery(ImmutableList.of(
 				new PhraseQuery(ImmutableList.of(new TermQuery("foo"), new TermQuery("bar")))
