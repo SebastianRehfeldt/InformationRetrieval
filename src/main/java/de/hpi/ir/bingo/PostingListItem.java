@@ -73,7 +73,9 @@ public final class PostingListItem {
 		int[] elements2 = item.positions.elements();
 		IntArrayList result = new IntArrayList();
 		int i1 = 0, i2 = 0;
-		while (i1 < elements.length && i2 < elements2.length) {
+		int elementsLength = positions.size();
+		int elements2Length = item.positions.size();
+		while (i1 < elementsLength && i2 < elements2Length) {
 			int v1 = elements[i1];
 			int v2 = elements2[i2];
 			if (v1 < v2) {
@@ -88,10 +90,10 @@ public final class PostingListItem {
 				i2++;
 			}
 		}
-		while (i1 < elements.length) {
+		while (i1 < elementsLength) {
 			result.add(elements[i1++]);
 		}
-		while (i2 < elements2.length) {
+		while (i2 < elements2Length) {
 			result.add(elements2[i2++]);
 		}
 		return new PostingListItem(patentId, result, documentWordCount);

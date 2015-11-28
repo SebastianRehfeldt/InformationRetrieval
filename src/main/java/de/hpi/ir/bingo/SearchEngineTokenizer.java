@@ -5,6 +5,7 @@ import com.google.common.collect.Lists;
 import org.apache.lucene.analysis.Analyzer;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
+import org.apache.lucene.analysis.tokenattributes.OffsetAttribute;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -15,19 +16,17 @@ public class SearchEngineTokenizer {
 
 	private final Analyzer analyzer = new CustomAnalyzer();
 
-	public List<String> tokenizeStopStem(Reader reader) {
+	public List<Token> tokenizeStopStem(Reader reader) {
 
 		try {
 			TokenStream stream = analyzer.tokenStream("", reader);
-			//stream = new EnglishMinimalStemFilter(stream);
 			stream.reset();
-			//OffsetAttribute offsetAttribute = stream.addAttribute(OffsetAttribute.class);
-			List<String> result = Lists.newArrayList();
+			stream.addAttribute(OffsetAttribute.class);
+			List<Token> result = Lists.newArrayList();
 			while (stream.incrementToken()) {
 				String token = stream.getAttribute(CharTermAttribute.class).toString();
-				//OffsetAttribute attribute = stream.getAttribute(OffsetAttribute.class);
-				result.add(token);
-				// TODO get position, return objects
+				OffsetAttribute attribute = stream.getAttribute(OffsetAttribute.class);
+				result.add(new Token(token, attribute.startOffset(), attribute.endOffset()));
 			}
 			stream.close();
 			return result;
@@ -36,7 +35,7 @@ public class SearchEngineTokenizer {
 		}
 	}
 
-	public List<String> tokenizeStopStem(String text) {
+	public List<Token> tokenizeStopStem(String text) {
 		return tokenizeStopStem(new StringReader(text));
 	}
 }

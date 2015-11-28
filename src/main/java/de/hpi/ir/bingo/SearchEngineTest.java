@@ -46,8 +46,8 @@ public class SearchEngineTest {
 
 
 		Writer resultWriter = Files.newBufferedWriter(Paths.get("queryresults.txt"), Charsets.UTF_8);
-		//List<String> queries = ImmutableList.of("digital #2", "rootkits #2", "network access #2");
-		List<String> queries = ImmutableList.of("rootki* OR \"mobile devic*\"");
+		List<String> queries = ImmutableList.of("network access");
+		//List<String> queries = ImmutableList.of("rootki* OR \"mobile devic*\"");
 
 		for (String query : queries) {
 			start = System.currentTimeMillis();

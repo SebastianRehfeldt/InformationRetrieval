@@ -59,20 +59,30 @@ public class SearchEngineIndexer {
 
 	//index creation
 	private Map<String, PostingListItem> buildIndexForDocument(PatentData patent) {
-		List<String> tokens = tokenizer.tokenizeStopStem(new StringReader(patent.getTitle() + " " + patent.getAbstractText()));
 		Map<String, PostingListItem> docIndex = new HashMap<>();
-		int position = 0;
+		List<Token> titleTokens = tokenizer.tokenizeStopStem(patent.getTitle());
+		List<Token> abstractTokens = tokenizer.tokenizeStopStem(patent.getAbstractText());
+		int totalSize = titleTokens.size() + abstractTokens.size();
 
-		for (String word : tokens) {
-			position++;
-			PostingListItem item = docIndex.get(word);
-			if (item == null) {
-				item = new PostingListItem(patent.getPatentId(), tokens.size());
-				docIndex.put(word, item);
-			}
-			item.addPosition(position);
-		}
+		int pos = 0;
+		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens, docIndex);
+		patent.setAbstractOffset(pos);
+		pos += addToIndex(patent.getPatentId(), pos, totalSize, abstractTokens, docIndex);
 		return docIndex;
+	}
+
+	private int addToIndex(int patentId, int offset, int totalSize, List<Token> tokens, Map<String, PostingListItem> docIndex) {
+		int position = offset;
+
+		for (Token word : tokens) {
+			PostingListItem item = docIndex.get(word.text);
+			if (item == null) {
+				item = new PostingListItem(patentId, totalSize);
+				docIndex.put(word.text, item);
+			}
+			item.addPosition(position++);
+		}
+		return tokens.size();
 	}
 
 	private void mergeDocIndexIntoMainIndex(Map<String, PostingList> index, Map<String, PostingListItem> docIndex) {

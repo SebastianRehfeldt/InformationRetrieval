@@ -34,8 +34,8 @@ public class QueryParser {
 			}
 			String phrase = m.group(3);
 			if (phrase != null) {
-				List<QueryPart> parts = parseParts(phrase);
-				queryParts.add(new PhraseQuery(parts));
+				List<QueryPart> phraseParts = parseParts(phrase);
+				queryParts.add(new PhraseQuery(phraseParts));
 			}
 			String term = m.group(4);
 			if (term != null) {
@@ -54,7 +54,7 @@ public class QueryParser {
 		if (term.endsWith("*")) {
 			return new PrefixQuery(term.substring(0, term.length()-1));
 		} else {
-			return new TermQuery(tokenizer.tokenizeStopStem(term).get(0));
+			return new TermQuery(tokenizer.tokenizeStopStem(term).get(0).text);
 		}
 	}
 

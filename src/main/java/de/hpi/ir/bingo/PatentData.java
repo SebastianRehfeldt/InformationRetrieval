@@ -10,7 +10,7 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-import de.hpi.ir.bingo.index.Token;
+import de.hpi.ir.bingo.index.TfidfToken;
 
 import java.io.Serializable;
 import java.util.Comparator;
@@ -23,20 +23,22 @@ public class PatentData implements Serializable {
 	private final int patentId;
 	private final String title;
 	private final String abstractText;
-	private final List<Token> importantTerms;
+	private int abstractOffset;
+	private final List<TfidfToken> importantTerms;
 
 	private PatentData() {
 		this(-1, "", "");
 	}
 
 	public PatentData(int patentId, String title, String abstractText) {
-		this(patentId, title, abstractText, Lists.newArrayList());
+		this(patentId, title, abstractText, -1, Lists.newArrayList());
 	}
 
-	private PatentData(int patentId, String title, String abstractText, List<Token> importantTerms) {
+	private PatentData(int patentId, String title, String abstractText, int abstractOffset, List<TfidfToken> importantTerms) {
 		this.patentId = patentId;
 		this.title = title;
 		this.abstractText = abstractText;
+		this.abstractOffset = abstractOffset;
 		this.importantTerms = importantTerms;
 	}
 
@@ -52,7 +54,7 @@ public class PatentData implements Serializable {
 		return abstractText;
 	}
 
-	public List<Token> getImportantTerms(){
+	public List<TfidfToken> getImportantTerms(){
 		return importantTerms;
 	}
 
@@ -60,25 +62,33 @@ public class PatentData implements Serializable {
 		Verify.verify(importantTerms.isEmpty());
 		SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
 		// title added multiple times to make it more important...
-		List<String> tokens = tokenizer.tokenizeStopStem(title + " " + title + " " + title + " " + abstractText);
+		List<Token> tokens = tokenizer.tokenizeStopStem(title + " " + title + " " + title + " " + abstractText);
 		Map<String, Integer> tf = Maps.newHashMap();
-		for (String token : tokens) {
-			if (tf.containsKey(token)) {
-				tf.put(token, tf.get(token) + 1);
+		for (Token token : tokens) {
+			if (tf.containsKey(token.text)) {
+				tf.put(token.text, tf.get(token.text) + 1);
 			} else {
-				tf.put(token, 1);
+				tf.put(token.text, 1);
 			}
 		}
-		List<Token> tfidfToken = Lists.newArrayList();
+		List<TfidfToken> tfidfToken = Lists.newArrayList();
 		for (Map.Entry<String, Integer> entry : tf.entrySet()) {
 			String key = entry.getKey();
 			Double value = entry.getValue() * idf.get(key);
-			tfidfToken.add(new Token(key, value));
+			tfidfToken.add(new TfidfToken(key, value));
 		}
-		Comparator<Token> c = Comparator.comparing(Token::getTfidf);
+		Comparator<TfidfToken> c = Comparator.comparing(TfidfToken::getTfidf);
 		tfidfToken.sort(c.reversed());
-		List<Token> terms = tfidfToken.stream().limit(MAXIMPORTANTTERMS).collect(Collectors.toList());
+		List<TfidfToken> terms = tfidfToken.stream().limit(MAXIMPORTANTTERMS).collect(Collectors.toList());
 		importantTerms.addAll(terms);
+	}
+
+	public int getAbstractOffset() {
+		return abstractOffset;
+	}
+
+	public void setAbstractOffset(int abstractOffset) {
+		this.abstractOffset = abstractOffset;
 	}
 
 	public static class PatentDataSerializer extends Serializer<PatentData> {
@@ -86,8 +96,9 @@ public class PatentData implements Serializable {
 			output.writeInt(data.patentId);
 			output.writeString(data.title);
 			output.writeString(data.abstractText);
+			output.writeInt(data.abstractOffset);
 			output.writeInt(data.importantTerms.size());
-			for (Token token : data.importantTerms) {
+			for (TfidfToken token : data.importantTerms) {
 				output.writeString(token.getText());
 				output.writeDouble(token.getTfidf());
 			}
@@ -97,14 +108,15 @@ public class PatentData implements Serializable {
 			int patentId = input.readInt();
 			String title = input.readString();
 			String abstractText = input.readString();
+			int abstractOffset = input.readInt();
 			int size = input.readInt();
-			List<Token> importantTerms = Lists.newArrayList();
+			List<TfidfToken> importantTerms = Lists.newArrayList();
 			for (int i = 0; i < size; i++) {
 				String s = input.readString();
 				Double v = input.readDouble();
-				importantTerms.add(new Token(s, v));
+				importantTerms.add(new TfidfToken(s, v));
 			}
-			return new PatentData(patentId, title, abstractText, importantTerms);
+			return new PatentData(patentId, title, abstractText, abstractOffset, importantTerms);
 		}
 	}
 

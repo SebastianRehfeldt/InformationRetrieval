@@ -12,9 +12,8 @@ import com.google.common.collect.Maps;
 
 import de.hpi.ir.bingo.PatentData;
 import de.hpi.ir.bingo.PostingList;
-import de.hpi.ir.bingo.PostingListItem;
 import de.hpi.ir.bingo.index.Table;
-import de.hpi.ir.bingo.index.Token;
+import de.hpi.ir.bingo.index.TfidfToken;
 
 public final class NormalQuery implements Query {
 	private static final int PRF_EXTENSION_SIZE = 5;
@@ -35,7 +34,7 @@ public final class NormalQuery implements Query {
 		QueryResultList resultList = parts.get(0).execute(index);
 		resultList.calculateTfidfScores(1.0, patents.getSize());
 		for (int i = 1; i < parts.size(); i++) {
-			QueryResultList resultList2 = parts.get(0).execute(index);
+			QueryResultList resultList2 = parts.get(i).execute(index);
 			resultList2.calculateTfidfScores(1.0, patents.getSize());
 			resultList = resultList.combine(resultList2);
 		}
@@ -61,7 +60,7 @@ public final class NormalQuery implements Query {
 		for (QueryResultItem patent : result.subList(0, Math.min(prf, result.size()))) {
 			PatentData patentData = patents.get(Integer.toString(patent.getPatentId()));
 			assert patentData != null;
-			for (Token token : patentData.getImportantTerms()) {
+			for (TfidfToken token : patentData.getImportantTerms()) {
 				String key = token.getText();
 				if (importantTokens.containsKey(key)) {
 					importantTokens.put(key, importantTokens.get(key) + token.getTfidf());

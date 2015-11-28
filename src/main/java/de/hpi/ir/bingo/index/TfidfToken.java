@@ -2,11 +2,11 @@ package de.hpi.ir.bingo.index;
 
 import com.google.common.base.Objects;
 
-public class Token {
+public class TfidfToken {
 	private final String text;
 	private final Double tfidf;
 
-	public Token(String text, Double tfidf) {
+	public TfidfToken(String text, Double tfidf) {
 		this.text = text;
 		this.tfidf = tfidf;
 	}
@@ -23,7 +23,7 @@ public class Token {
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (o == null || getClass() != o.getClass()) return false;
-		Token token = (Token) o;
+		TfidfToken token = (TfidfToken) o;
 		return Objects.equal(text, token.text) &&
 				Objects.equal(tfidf, token.tfidf);
 	}

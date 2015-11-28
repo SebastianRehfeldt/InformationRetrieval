@@ -5,21 +5,15 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import com.google.common.base.Charsets;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 
 import de.hpi.ir.bingo.index.Table;
 import de.hpi.ir.bingo.index.TableReader;
 import de.hpi.ir.bingo.index.TableWriter;
-import de.hpi.ir.bingo.index.Token;
 import de.hpi.ir.bingo.queries.Query;
 import de.hpi.ir.bingo.queries.QueryParser;
 import de.hpi.ir.bingo.queries.QueryResultItem;
@@ -38,6 +32,7 @@ public class SearchEngineBingo extends SearchEngine {
 	private Table<PostingList> index;
 	private Table<PatentData> patentIndex;
 	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
+	private final SnippetBuilder snippetBuilder = new SnippetBuilder();
 
 	public SearchEngineBingo() { // Replace 'Template' with your search engine's name, i.e. SearchEngineMyTeamName
 		// This should stay as is! Don't add anything here!
@@ -80,7 +75,7 @@ public class SearchEngineBingo extends SearchEngine {
 	}
 
 	@Override
-	ArrayList<String> search(String query, int topK, int prf) {
+	ArrayList<String> search(String query, int topK, int prf_IGNORED) {
 		this.topK = topK;
 		this.prf = prf;
 
@@ -91,26 +86,19 @@ public class SearchEngineBingo extends SearchEngine {
 
 		List<QueryResultItem> result = queryObject.execute(index, patentIndex);
 
-		ArrayList<String> titles = new ArrayList<>();
+		ArrayList<String> searchResult = new ArrayList<>();
 
 		//find for each postinglistitem the patent and retrieve the title of this patent
-		for (QueryResultItem patent : result.subList(0, Math.min(topK, result.size()))) {
-			PatentData patentData = patentIndex.get(Integer.toString(patent.getPatentId()));
+		List<QueryResultItem> topResult = result.subList(0, Math.min(topK, result.size()));
+		for (QueryResultItem resultItem : topResult) {
+			PatentData patentData = patentIndex.get(Integer.toString(resultItem.getPatentId()));
 			assert patentData != null;
 			String title = patentData.getTitle();
-//			if(query.startsWith("'") && query.endsWith("'")){
-//				String phrase = query.substring(1, query.length()-1).toLowerCase();
-//				if(patentData.getAbstractText().toLowerCase().contains(phrase)){
-//					titles.add(title);
-//				}
-//			}
-//			else{
-//				titles.add(title);
-//			}
-			titles.add(patent.getPatentId() + " " + title);
+			String snippet = snippetBuilder.createSnippet(patentData, resultItem.getItem());
+			searchResult.add(resultItem.getPatentId() + " " + title + " --- " + snippet);
 		}
 
-		return titles;
+		return searchResult;
 	}
 
 	//printing
