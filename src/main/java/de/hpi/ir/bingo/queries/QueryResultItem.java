@@ -8,10 +8,12 @@ import de.hpi.ir.bingo.PostingListItem;
 public class QueryResultItem {
 	private final PostingListItem item;
 	private double score;
+	private String snippet;
 
-	public QueryResultItem(PostingListItem item, double score) {
+	public QueryResultItem(PostingListItem item, double score, String snippet) {
 		this.item = item;
 		this.score = score;
+		this.snippet = snippet;
 	}
 
 	public int getPatentId() {
@@ -51,5 +53,14 @@ public class QueryResultItem {
 	@Override
 	public int hashCode() {
 		return Objects.hashCode(item, score);
+	}
+
+	public String getSnippet() {
+		return snippet;
+	}
+
+	public void setSnippet(String snippet) {
+		Verify.verify(this.snippet == null, "snippet should only be set once");
+		this.snippet = snippet;
 	}
 }

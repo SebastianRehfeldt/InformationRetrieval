@@ -12,6 +12,7 @@ import com.google.common.collect.Maps;
 
 import de.hpi.ir.bingo.PatentData;
 import de.hpi.ir.bingo.PostingList;
+import de.hpi.ir.bingo.SnippetBuilder;
 import de.hpi.ir.bingo.index.Table;
 import de.hpi.ir.bingo.index.TfidfToken;
 
@@ -44,6 +45,7 @@ public final class NormalQuery implements Query {
 
 		if (prf > 0) {
 			List<String> topToken = getPrfToken(result, patents);
+			System.out.println("extend query with: " + topToken);
 			for (String stringDoubleEntry : topToken) {
 				QueryResultList resultList2 = new TermQuery(stringDoubleEntry).execute(index);
 				resultList2.calculateTfidfScores(0.1, patents.getSize());
@@ -57,11 +59,16 @@ public final class NormalQuery implements Query {
 
 	private List<String> getPrfToken(List<QueryResultItem> result, Table<PatentData> patents) {
 		Map<String, Double> importantTokens = Maps.newHashMap();
-		for (QueryResultItem patent : result.subList(0, Math.min(prf, result.size()))) {
-			PatentData patentData = patents.get(Integer.toString(patent.getPatentId()));
+		for (QueryResultItem resultItem : result.subList(0, Math.min(prf, result.size()))) {
+			PatentData patentData = patents.get(Integer.toString(resultItem.getPatentId()));
+			String snippet = new SnippetBuilder().createSnippet(patentData, resultItem.getItem());
+			resultItem.setSnippet(snippet);
 			assert patentData != null;
 			for (TfidfToken token : patentData.getImportantTerms()) {
 				String key = token.getText();
+				if(!snippet.contains(key)) {
+					continue;
+				}
 				if (importantTokens.containsKey(key)) {
 					importantTokens.put(key, importantTokens.get(key) + token.getTfidf());
 				} else {

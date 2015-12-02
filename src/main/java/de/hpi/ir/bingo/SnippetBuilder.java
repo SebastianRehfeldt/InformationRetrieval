@@ -7,6 +7,7 @@ import java.util.List;
 public class SnippetBuilder {
 
 	private static final int WINDOWS_SIZE = 6;
+	private static final int MAX_SNIPPET_AFTER_END = 50;
 	SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
 
 	public String createSnippet(PatentData patent, PostingListItem item) {
@@ -14,7 +15,8 @@ public class SnippetBuilder {
 		int abstractOffset = patent.getAbstractOffset();
 		int start = 0;
 		IntArrayList positions = item.getPositions();
-		while (start < positions.size() && positions.get(start) < abstractOffset) start++; // skip title
+		while (start < positions.size() && positions.get(start) < abstractOffset)
+			start++; // skip title
 
 		if (start == positions.size()) {
 			return "";
@@ -39,17 +41,26 @@ public class SnippetBuilder {
 		Token startToken = abstractToken.get(positions.getInt(bestStart) - abstractOffset);
 		Token endToken = abstractToken.get(positions.getInt(bestEnd - 1) - abstractOffset);
 
-		int snippetStart = Math.max(patent.getAbstractText().lastIndexOf('.', startToken.begin),
-				patent.getAbstractText().lastIndexOf('?', startToken.begin)) + 1;
 
-		int snippetEnd = Math.min(indexOrSize(patent.getAbstractText(), '.', endToken.end),
-				indexOrSize(patent.getAbstractText(), '?', endToken.end));
+		int snippetStart = 1 + Math.max(Math.max(patent.getAbstractText().lastIndexOf('.', startToken.begin),
+				patent.getAbstractText().lastIndexOf('?', startToken.begin)),
+				patent.getAbstractText().lastIndexOf(';', startToken.begin));
+
+		int snippetEnd = Math.min(Math.min(indexOrSize(patent.getAbstractText(), '.', endToken.end),
+				indexOrSize(patent.getAbstractText(), '?', endToken.end)),
+				indexOrSize(patent.getAbstractText(), ';', endToken.end));
 
 		if (snippetEnd == -1) {
 			snippetEnd = patent.getAbstractText().length();
 		}
 
-		return patent.getAbstractText().substring(snippetStart, snippetEnd).trim();
+		boolean addElipsis = false;
+		if (snippetEnd - endToken.end > MAX_SNIPPET_AFTER_END) {
+			snippetEnd = endToken.end + MAX_SNIPPET_AFTER_END;
+			addElipsis = true;
+		}
+
+		return patent.getAbstractText().substring(snippetStart, snippetEnd).trim() + (addElipsis ? "..." : "");
 	}
 
 	private int indexOrSize(String text, char character, int fromIndex) {

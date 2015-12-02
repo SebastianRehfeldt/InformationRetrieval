@@ -94,7 +94,10 @@ public class SearchEngineBingo extends SearchEngine {
 			PatentData patentData = patentIndex.get(Integer.toString(resultItem.getPatentId()));
 			assert patentData != null;
 			String title = patentData.getTitle();
-			String snippet = snippetBuilder.createSnippet(patentData, resultItem.getItem());
+			String snippet = resultItem.getSnippet();
+			if (snippet == null) { // snippets might already be created if prf>0
+				snippet = snippetBuilder.createSnippet(patentData, resultItem.getItem());
+			}
 			searchResult.add(resultItem.getPatentId() + " " + title + " --- " + snippet);
 		}
 
