@@ -46,7 +46,7 @@ public class SearchEngineTest {
 
 
 		Writer resultWriter = Files.newBufferedWriter(Paths.get("queryresults.txt"), Charsets.UTF_8);
-		List<String> queries = ImmutableList.of("access control #2", "computers #2" ,"data processing #2", "web servers #2", "vulnerability information #2", "computer-readable media #2");
+		List<String> queries = ImmutableList.of("access", "control" ,"image data", "program", "vulnerability", "\"mobile device\"");
 		//List<String> queries = ImmutableList.of("rootki* OR \"mobile devic*\"");
 
 		for (String query : queries) {
@@ -63,8 +63,8 @@ public class SearchEngineTest {
 				System.out.println("No results found");
 			} else {
 				for (String result : results) {
-					System.out.println(result);
-					resultWriter.write(result + "\n");
+					System.out.println(result+"\n");
+					resultWriter.write(result + "\n\n");
 				}
 			}
 			resultWriter.write("\n");

@@ -10,6 +10,7 @@ public final class PostingListItem {
 	private final int patentId;
 	private final IntArrayList positions;
 	private final int documentWordCount;
+	private final int titleWordCount;
 
 	private double score = 0;
 
@@ -17,18 +18,19 @@ public final class PostingListItem {
 		this(-1, new IntArrayList());
 	}*/
 
-	public PostingListItem(int patentId, int documentWordCount) {
-		this(patentId, new IntArrayList(), documentWordCount);
+	public PostingListItem(int patentId, int documentWordCount, int titleWordCount) {
+		this(patentId, new IntArrayList(), documentWordCount, titleWordCount);
 	}
 
-	public PostingListItem(int id, IntArrayList posList, int documentWordCount) {
+	public PostingListItem(int id, IntArrayList posList, int documentWordCount, int titleWordCount) {
 		this.patentId = id;
 		this.positions = posList;
 		this.documentWordCount = documentWordCount;
+		this.titleWordCount = titleWordCount;
 	}
 
-	public PostingListItem(int id, int[] positions, int documentWordCount) {
-		this(id, IntArrayList.wrap(positions), documentWordCount);
+	public PostingListItem(int id, int[] positions, int documentWordCount, int titleWordCount) {
+		this(id, IntArrayList.wrap(positions), documentWordCount, titleWordCount);
 	}
 
 	public void addPosition(int position) {
@@ -65,7 +67,7 @@ public final class PostingListItem {
 				i2++;
 			}
 		}
-		return new PostingListItem(patentId, result, documentWordCount);
+		return new PostingListItem(patentId, result, documentWordCount, titleWordCount);
 	}
 
 	public PostingListItem merge(PostingListItem item) {
@@ -96,7 +98,7 @@ public final class PostingListItem {
 		while (i2 < elements2Length) {
 			result.add(elements2[i2++]);
 		}
-		return new PostingListItem(patentId, result, documentWordCount);
+		return new PostingListItem(patentId, result, documentWordCount, titleWordCount);
 	}
 
 	@Override
@@ -124,5 +126,9 @@ public final class PostingListItem {
 	
 	public int getDocumentWordCount() {
 		return documentWordCount;
+	}
+
+	public int getTitleWordCount() {
+		return titleWordCount ;
 	}
 }

@@ -65,19 +65,20 @@ public class SearchEngineIndexer {
 		int totalSize = titleTokens.size() + abstractTokens.size();
 
 		int pos = 0;
-		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens, docIndex);
+		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), titleTokens, docIndex);
 		patent.setAbstractOffset(pos);
-		pos += addToIndex(patent.getPatentId(), pos, totalSize, abstractTokens, docIndex);
+		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), abstractTokens, docIndex);
 		return docIndex;
 	}
 
-	private int addToIndex(int patentId, int offset, int totalSize, List<Token> tokens, Map<String, PostingListItem> docIndex) {
+	private int addToIndex(int patentId, int offset, int totalSize, int titleWordCount,
+			               List<Token> tokens, Map<String, PostingListItem> docIndex) {
 		int position = offset;
 
 		for (Token word : tokens) {
 			PostingListItem item = docIndex.get(word.text);
 			if (item == null) {
-				item = new PostingListItem(patentId, totalSize);
+				item = new PostingListItem(patentId, totalSize, titleWordCount);
 				docIndex.put(word.text, item);
 			}
 			item.addPosition(position++);

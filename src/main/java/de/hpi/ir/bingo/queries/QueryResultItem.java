@@ -63,4 +63,8 @@ public class QueryResultItem {
 		Verify.verify(this.snippet == null, "snippet should only be set once");
 		this.snippet = snippet;
 	}
+
+	public boolean hasTermInTitle() {
+		return item.getPositions().get(0) < item.getTitleWordCount();
+	}
 }

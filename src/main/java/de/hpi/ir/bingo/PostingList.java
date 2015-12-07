@@ -52,6 +52,7 @@ public final class PostingList {
 				int id = item.getPatentId();
 				output.writeVarInt(id - lastId, true);
 				output.writeVarInt(item.getDocumentWordCount(), true);
+				output.writeVarInt(item.getTitleWordCount(), true);
 				lastId = id;
 
 				IntArrayList positions = item.getPositions();
@@ -73,6 +74,7 @@ public final class PostingList {
 				int id = input.readVarInt(true) + lastId;
 				lastId = id;
 				int documentWordCount = input.readVarInt(true);
+				int titleWordCount = input.readVarInt(true);
 				int posSize = input.readVarInt(true);
 				IntArrayList posList = new IntArrayList(posSize);
 				int lastPos = 0;
@@ -81,7 +83,7 @@ public final class PostingList {
 					lastPos = pos;
 					posList.add(pos);
 				}
-				items.add(new PostingListItem(id, posList, documentWordCount));
+				items.add(new PostingListItem(id, posList, documentWordCount, titleWordCount));
 			}
 			return new PostingList(items);
 		}
@@ -93,6 +95,7 @@ public final class PostingList {
 			for (PostingListItem item : list.items) {
 				output.writeInt(item.getPatentId());
 				output.writeInt(item.getDocumentWordCount());
+				output.writeInt(item.getTitleWordCount());
 				IntArrayList positions = item.getPositions();
 				output.writeInt(positions.size());
 				for (int pos : positions) {
@@ -107,13 +110,14 @@ public final class PostingList {
 			for (int i = 0; i < size; i++) {
 				int id = input.readInt();
 				int documentWordCount = input.readInt();
+				int titleWordCount = input.readInt();
 				int posSize = input.readInt();
 				IntArrayList posList = new IntArrayList(posSize);
 				for (int i1 = 0; i1 < posSize; i1++) {
 					int pos = input.readInt();
 					posList.add(pos);
 				}
-				items.add(new PostingListItem(id, posList, documentWordCount));
+				items.add(new PostingListItem(id, posList, documentWordCount, titleWordCount));
 			}
 			return new PostingList(items);
 		}

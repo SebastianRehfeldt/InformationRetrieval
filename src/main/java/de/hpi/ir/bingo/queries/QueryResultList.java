@@ -189,7 +189,11 @@ public class QueryResultList {
 
 	public void calculateTfidfScores(double weight, int totalDocumentCount) {
 		for (QueryResultItem item : items) {
-			item.setScore(Math.log(tfidf(this, item, totalDocumentCount) * weight));
+			int titleBoost = 1;
+			if(item.hasTermInTitle()){
+				titleBoost = 2;
+			}
+			item.setScore(Math.log(tfidf(this, item, totalDocumentCount) * weight * titleBoost));
 		}
 	}
 

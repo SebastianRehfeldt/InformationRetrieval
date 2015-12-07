@@ -46,7 +46,7 @@ public final class TableReaderWriterTest {
 
 		TableWriter<PostingList> writer = new TableWriter<>(tmpFile, false, 1, PostingList.class, PostingList.NORMAL_SERIALIZER);
 		PostingList list = new PostingList();
-		list.addItem(new PostingListItem(5, 10));
+		list.addItem(new PostingListItem(5, 10,10));
 		writer.put("k1", list);
 		writer.close();
 
