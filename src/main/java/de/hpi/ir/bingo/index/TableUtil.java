@@ -12,6 +12,8 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 public final class TableUtil {
 
@@ -23,6 +25,8 @@ public final class TableUtil {
 			//kryo.register(PostingList.class, new PostingList.PostingListSerializer());
 			kryo.register(PatentData.class, new PatentData.PatentDataSerializer());
 			kryo.register(TableIndex.class, new TableIndex.TableIndexSerializer());
+			kryo.register(HashMap.class);
+			kryo.register(ArrayList.class);
 			return kryo;
 		}
 	};

@@ -45,6 +45,6 @@ public class SnippetBuilderTest {
 	public void testCreateEmptySnippet() throws Exception {
 		PostingListItem item = new PostingListItem(1, new int[]{2}, 14,10);
 		String snippet = snippetBuilder.createSnippet(patent, item);
-		assertThat(snippet).isEqualTo("");
+		assertThat(snippet).isEqualTo("foo bar mobile device");
 	}
 }

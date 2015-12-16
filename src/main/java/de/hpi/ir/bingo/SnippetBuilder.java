@@ -19,7 +19,13 @@ public class SnippetBuilder {
 			start++; // skip title
 
 		if (start == positions.size()) {
-			return "";
+			int end = patent.getAbstractText().indexOf('.');
+			boolean addElipses = false;
+			if (end > 50) {
+				end = 50;
+				addElipses = true;
+			}
+			return patent.getAbstractText().substring(0, end).trim() + (addElipses ? "..." : "");
 		}
 
 		int bestStart = 0;
@@ -40,7 +46,6 @@ public class SnippetBuilder {
 		}
 		Token startToken = abstractToken.get(positions.getInt(bestStart) - abstractOffset);
 		Token endToken = abstractToken.get(positions.getInt(bestEnd - 1) - abstractOffset);
-
 
 		int snippetStart = 1 + Math.max(Math.max(patent.getAbstractText().lastIndexOf('.', startToken.begin),
 				patent.getAbstractText().lastIndexOf('?', startToken.begin)),

@@ -8,8 +8,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Charsets;
+import com.google.common.collect.Maps;
 
 import de.hpi.ir.bingo.index.Table;
 import de.hpi.ir.bingo.index.TableReader;
@@ -29,6 +31,7 @@ import de.hpi.ir.bingo.queries.QueryResultItem;
  */
 public class SearchEngineBingo extends SearchEngine {
 
+	public static final double LOG2 = Math.log(2.0);
 	private Table<PostingList> index;
 	private Table<PatentData> patentIndex;
 	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
@@ -74,8 +77,34 @@ public class SearchEngineBingo extends SearchEngine {
 		return true;
 	}
 
+	class SearchResult {
+		int patentId;
+		String title;
+		String snippet;
+
+		public SearchResult(int patentId, String title, String snippet) {
+			this.patentId = patentId;
+			this.title = title;
+			this.snippet = snippet;
+		}
+
+		@Override
+		public String toString() {
+			return "" + patentId + " " + title + "\n" + snippet;
+		}
+	}
+
 	@Override
 	ArrayList<String> search(String query, int topK, int prf_IGNORED) {
+		List<SearchResult> result = searchWithSearchResult(query, topK);
+		return new ArrayList<>(getTitles(result));
+	}
+
+	public List<String> getTitles(List<SearchResult> result) {
+		return result.stream().map(r -> r.title).collect(Collectors.toList());
+	}
+
+	List<SearchResult> searchWithSearchResult(String query, int topK) {
 		this.topK = topK;
 		this.prf = prf;
 
@@ -86,7 +115,7 @@ public class SearchEngineBingo extends SearchEngine {
 
 		List<QueryResultItem> result = queryObject.execute(index, patentIndex);
 
-		ArrayList<String> searchResult = new ArrayList<>();
+		List<SearchResult> searchResult = new ArrayList<>();
 
 		//find for each postinglistitem the patent and retrieve the title of this patent
 		List<QueryResultItem> topResult = result.subList(0, Math.min(topK, result.size()));
@@ -98,17 +127,38 @@ public class SearchEngineBingo extends SearchEngine {
 			if (snippet == null) { // snippets might already be created if prf>0
 				snippet = snippetBuilder.createSnippet(patentData, resultItem.getItem());
 			}
-			searchResult.add(resultItem.getPatentId() + " " + title + "\n" + snippet);
+			searchResult.add(new SearchResult(patentData.getPatentId(), title, snippet));
 		}
-
 		return searchResult;
 	}
 	
 	
 	// returns the normalized discounted cumulative gain at a particular rank position 'p'
 	@Override
-	Double computeNdcg(ArrayList<String> goldRanking, ArrayList<String> ranking, int p){
-		return 0.0;
+	Double computeNdcg(ArrayList<String> goldRanking, ArrayList<String> ranking, int p) {
+		return computeNdcg((List<String>)goldRanking, (List<String>)ranking, p);
+	}
+
+	// better signature with List and double instead of ArrayList and Double
+	double computeNdcg(List<String> goldRanking, List<String> ranking, int p) {
+		Map<String, Double> gains = Maps.newHashMap();
+		for (int i = 0; i < goldRanking.size(); i++) {
+			double gain = 1.0 + Math.floor(10 * Math.pow(0.5, 0.1 * (i+1)));
+			gains.put(goldRanking.get(i), gain);
+		}
+		double ndcg = 0;
+		for (int i = 0; i < Math.min(p, ranking.size()); i++) {
+			String title = ranking.get(i);
+			Double gain = gains.get(title);
+			if (gain != null) {
+				if (i == 0) {
+					ndcg += gain;
+				} else {
+					ndcg += gain / (Math.log(i + 1) / LOG2);
+				}
+			}
+		}
+		return ndcg;
 	}
 
 	//printing
