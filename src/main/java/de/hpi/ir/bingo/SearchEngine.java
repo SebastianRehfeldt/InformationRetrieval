@@ -53,14 +53,7 @@ public abstract class SearchEngine {
 	// search the index for a given query and return the relevant patent titles in an ArrayList of Strings
 	abstract ArrayList<String> search(String query, int topK, int prf);
 
-	// we will need this later in the course
-	public void setTopK(int value) {
-		topK = value;
-	}
-
-	// we will need this later in the course
-	public void setPRF(int value) {
-		prf = value;
-	}
+	// compute the NDCG metric using your ranking and the google ranking for a given query 
+    abstract Double computeNdcg(ArrayList<String> goldRanking, ArrayList<String> ranking, int p);
 
 }

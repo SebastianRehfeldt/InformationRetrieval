@@ -103,6 +103,13 @@ public class SearchEngineBingo extends SearchEngine {
 
 		return searchResult;
 	}
+	
+	
+	// returns the normalized discounted cumulative gain at a particular rank position 'p'
+	@Override
+	Double computeNdcg(ArrayList<String> goldRanking, ArrayList<String> ranking, int p){
+		return 0.0;
+	}
 
 	//printing
 	void printPatentTitles() {
