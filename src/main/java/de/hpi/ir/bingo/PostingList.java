@@ -15,9 +15,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
 import com.google.common.collect.Lists;
 
+import de.hpi.ir.bingo.index.TableMerger;
+
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 
-public final class PostingList {
+public final class PostingList implements TableMerger.Mergeable<PostingList> {
 	public static final Serializer<PostingList> NORMAL_SERIALIZER = new PostingListSerializer();
 	public static final Serializer<PostingList> COMPRESSING_SERIALIZER = new PostingListCompressingSerializer();
 
@@ -36,13 +38,24 @@ public final class PostingList {
 	}
 
 	public void addItem(PostingListItem item) {
-		Verify.verify(items.isEmpty() || items.get(items.size() - 1).getPatentId() < item.getPatentId());
+		Verify.verify(items.isEmpty() || items.get(items.size() - 1).getPatentId() < item.getPatentId(), "patentIds must be increasing");
 		items.add(item);
 	}
 
 	public int getDocumentCount() {
 		return items.size();
 	}
+
+	@Override
+	public PostingList mergedWith(PostingList other) {
+		if (items.get(0).getPatentId() > other.items.get(0).getPatentId()) {
+			return other.mergedWith(this);
+		}
+		List<PostingListItem> concat = new ArrayList<>(items);
+		concat.addAll(other.items);
+		return new PostingList(concat);
+	}
+
 
 	private static class PostingListCompressingSerializer extends Serializer<PostingList> {
 		public void write(Kryo kryo, Output output, PostingList list) {

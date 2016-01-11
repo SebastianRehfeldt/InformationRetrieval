@@ -44,8 +44,9 @@ public class SearchEngineBingo extends SearchEngine {
 
 	@Override
 	void index(String directory) {
-		String fileName = "res/testData.xml";
+		//String fileName = "res/testData.xml";
 		//String fileName = "compressed_patents/ipg150106.fixed.zip";
+		String fileName = "compressed_patents/patentData.zip";
 		new SearchEngineIndexer().createIndex(fileName, directory, "index", PostingList.NORMAL_SERIALIZER);
 	}
 

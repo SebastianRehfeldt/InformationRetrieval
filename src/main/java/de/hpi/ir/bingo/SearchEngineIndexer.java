@@ -1,20 +1,29 @@
 package de.hpi.ir.bingo;
 
+import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.esotericsoftware.kryo.Serializer;
+import com.sun.org.apache.regexp.internal.RE;
 
+import de.hpi.ir.bingo.index.TableMerger;
 import de.hpi.ir.bingo.index.TableReader;
 import de.hpi.ir.bingo.index.TableUtil;
 import de.hpi.ir.bingo.index.TableWriter;
 
+import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayDeque;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SearchEngineIndexer {
 	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
@@ -24,23 +33,68 @@ public class SearchEngineIndexer {
 		Map<String, PostingList> index = Maps.newHashMap();
 		Map<String, PatentData> patents = Maps.newHashMap();
 
+		AtomicInteger i = new AtomicInteger();
+		AtomicInteger indexCounter = new AtomicInteger(3);
+		Stopwatch stopwatch = Stopwatch.createStarted();
+
 		PatentHandler.parseXml(fileName, (patent) -> {
 			Map<String, PostingListItem> docIndex = buildIndexForDocument(patent);
 			mergeDocIndexIntoMainIndex(index, docIndex);
 			patents.put(Integer.toString(patent.getPatentId()), patent);
+
+			if (i.incrementAndGet()%1000 == 0) {
+				long free = Runtime.getRuntime().freeMemory();
+				System.out.println("read: " + i + " available: " + free/1024/1024 + "mb" + " passed: " + stopwatch);
+				if(free < 1000L*1024L*1024L) {
+					writeToDisk(directory, indexName, indexCounter.incrementAndGet(), serializer, index, patents);
+					System.out.println("index written to disk!!");
+				}
+			}
 		});
 
-		//writeIndexTerms(index);
+		writeToDisk(directory, indexName, indexCounter.incrementAndGet(), serializer, index, patents);
 
-		TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, indexName), true, PostingList.class, serializer);
+		// merge!
+		try {
+			mergeIndices(directory, indexName, indexCounter.get(), PostingList.class, serializer);
+			mergeIndices(directory, "patents-temp", indexCounter.get(), PatentData.class, null);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+
+		calculateImportantTerms(directory, indexName, serializer);
+	}
+
+	private <T extends TableMerger.Mergeable<T>> void mergeIndices(String directory, String indexName, int parts, Class<T> clazz, Serializer<T> serializer) throws IOException {
+		Queue<Path> files = new ArrayDeque<>();
+		for (int j = 1; j <= parts; j++) {
+			files.add(Paths.get(directory, indexName + j));
+		}
+		while (files.size() > 1) {
+			Path a = files.poll();
+			Path b = files.poll();
+			parts++;
+			Path dest = Paths.get(directory, indexName + parts);
+			TableMerger.merge(dest, a, b, clazz ,serializer);
+			Files.delete(a);
+			Files.delete(b);
+			files.add(dest);
+		}
+		Files.move(files.poll(), Paths.get(directory, indexName));
+	}
+
+	private void writeToDisk(String directory, String indexName, int counter, Serializer<PostingList> serializer, Map<String, PostingList> index, Map<String, PatentData> patents) {
+		TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, indexName + counter), false, PostingList.class, serializer);
 		indexWriter.writeMap(index);
 		indexWriter.close();
 
-		TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents-temp"), true, PatentData.class, null);
+		TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents-temp" + counter), false, PatentData.class, null);
 		patentWriter.writeMap(patents);
 		patentWriter.close();
 
-		calculateImportantTerms(directory, indexName, serializer);
+		index.clear();
+		patents.clear();
+		Runtime.getRuntime().gc();
 	}
 
 	private void printIndex(Map<String, PostingList> index) {
@@ -62,12 +116,15 @@ public class SearchEngineIndexer {
 		Map<String, PostingListItem> docIndex = new HashMap<>();
 		List<Token> titleTokens = tokenizer.tokenizeStopStem(patent.getTitle());
 		List<Token> abstractTokens = tokenizer.tokenizeStopStem(patent.getAbstractText());
+		List<Token> claimTokens = tokenizer.tokenizeStopStem(patent.getClaimText());
 		int totalSize = titleTokens.size() + abstractTokens.size();
 
 		int pos = 0;
 		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), titleTokens, docIndex);
 		patent.setAbstractOffset(pos);
 		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), abstractTokens, docIndex);
+		patent.setClaimOffset(pos);
+		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), claimTokens, docIndex);
 		return docIndex;
 	}
 

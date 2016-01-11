@@ -10,7 +10,10 @@ import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
+import de.hpi.ir.bingo.index.TableMerger;
 import de.hpi.ir.bingo.index.TfidfToken;
+
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.Serializable;
 import java.util.Comparator;
@@ -18,27 +21,31 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class PatentData implements Serializable {
+public class PatentData implements Serializable, TableMerger.Mergeable<PatentData> {
 	private static final long MAXIMPORTANTTERMS = 7;
 	private final int patentId;
 	private final String title;
 	private final String abstractText;
+	private final String claimText;
 	private int abstractOffset;
+	private int claimOffset;
 	private final List<TfidfToken> importantTerms;
 
 	private PatentData() {
-		this(-1, "", "");
+		this(-1, "", "", "");
 	}
 
-	public PatentData(int patentId, String title, String abstractText) {
-		this(patentId, title, abstractText, -1, Lists.newArrayList());
+	public PatentData(int patentId, String title, String abstractText, String claimText) {
+		this(patentId, title, abstractText, claimText, -1, -1, Lists.newArrayList());
 	}
 
-	private PatentData(int patentId, String title, String abstractText, int abstractOffset, List<TfidfToken> importantTerms) {
+	private PatentData(int patentId, String title, String abstractText, String claimText, int abstractOffset, int claimOffset, List<TfidfToken> importantTerms) {
 		this.patentId = patentId;
 		this.title = title;
 		this.abstractText = abstractText;
+		this.claimText = claimText;
 		this.abstractOffset = abstractOffset;
+		this.claimOffset = claimOffset;
 		this.importantTerms = importantTerms;
 	}
 
@@ -91,12 +98,26 @@ public class PatentData implements Serializable {
 		this.abstractOffset = abstractOffset;
 	}
 
+	@Override
+	public PatentData mergedWith(PatentData other) {
+		throw new NotImplementedException(); // shouldnt be neccessary
+	}
+
+	public String getClaimText() {
+		return claimText;
+	}
+
+	public void setClaimOffset(int claimOffset) {
+		this.claimOffset = claimOffset;
+	}
+
 	public static class PatentDataSerializer extends Serializer<PatentData> {
 		public void write(Kryo kryo, Output output, PatentData data) {
 			output.writeInt(data.patentId);
 			output.writeString(data.title);
 			output.writeString(data.abstractText);
 			output.writeInt(data.abstractOffset);
+			output.writeInt(data.claimOffset);
 			output.writeInt(data.importantTerms.size());
 			for (TfidfToken token : data.importantTerms) {
 				output.writeString(token.getText());
@@ -109,6 +130,7 @@ public class PatentData implements Serializable {
 			String title = input.readString();
 			String abstractText = input.readString();
 			int abstractOffset = input.readInt();
+			int claimOffset = input.readInt();
 			int size = input.readInt();
 			List<TfidfToken> importantTerms = Lists.newArrayList();
 			for (int i = 0; i < size; i++) {
@@ -116,7 +138,7 @@ public class PatentData implements Serializable {
 				Double v = input.readDouble();
 				importantTerms.add(new TfidfToken(s, v));
 			}
-			return new PatentData(patentId, title, abstractText, abstractOffset, importantTerms);
+			return new PatentData(patentId, title, abstractText, "", abstractOffset, claimOffset, importantTerms);
 		}
 	}
 

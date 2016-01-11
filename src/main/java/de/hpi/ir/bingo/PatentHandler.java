@@ -1,5 +1,7 @@
 package de.hpi.ir.bingo;
 
+import com.google.common.collect.Lists;
+
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -12,7 +14,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Stack;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
@@ -24,6 +29,8 @@ public class PatentHandler extends DefaultHandler {
 	private StringBuilder currentTitle;
 	private StringBuilder currentId;
 	private StringBuilder currentAbstract;
+	private StringBuilder currentClaim;
+
 	private String currentApplType;
 	private final Consumer<PatentData> patentComsumer;
 
@@ -44,11 +51,14 @@ public class PatentHandler extends DefaultHandler {
 
 			if (fileName.endsWith(".zip")) {
 				ZipFile zipFile = new ZipFile(fileName);
-				Enumeration<? extends ZipEntry> entries = zipFile.entries();
-				while (entries.hasMoreElements()) {
-					ZipEntry zipEntry = entries.nextElement();
-					Reader r = new InputStreamReader(zipFile.getInputStream(zipEntry));
-					xr.parse(new InputSource(r));
+				List<? extends ZipEntry> entries = Collections.list(zipFile.entries());
+				entries.sort(Comparator.comparing(ZipEntry::getName));
+				for (ZipEntry zipEntry : entries) {
+					if (zipEntry.getName().endsWith(".xml")) {
+						System.out.println("reading: " + zipEntry.getName());
+						Reader r = new InputStreamReader(zipFile.getInputStream(zipEntry));
+						xr.parse(new InputSource(r));
+					}
 				}
 			} else {
 				Reader r = new FileReader(fileName);
@@ -65,6 +75,7 @@ public class PatentHandler extends DefaultHandler {
 		currentId = new StringBuilder();
 		currentTitle = new StringBuilder();
 		currentAbstract = new StringBuilder();
+		currentClaim = new StringBuilder();
 	}
 
 	@Override
@@ -77,6 +88,7 @@ public class PatentHandler extends DefaultHandler {
 			currentId.setLength(0);
 			currentTitle.setLength(0);
 			currentAbstract.setLength(0);
+			currentClaim.setLength(0);
 			currentApplType = "";
 		}
 		if (name.equals("application-reference")) {
@@ -92,7 +104,8 @@ public class PatentHandler extends DefaultHandler {
 				int id = Integer.parseInt(currentId.toString());
 				String title = currentTitle.toString().replaceAll("\\s+", " "); // remove duplicate whitespace
 				String abstractText = currentAbstract.toString().replaceAll("\\s+", " ");
-				patentComsumer.accept(new PatentData(id, title, abstractText));
+				String claimText = currentClaim.toString().replaceAll("\\s+", " ");
+				patentComsumer.accept(new PatentData(id, title, abstractText, claimText));
 			}
 		}
 		parents.pop();
@@ -108,6 +121,9 @@ public class PatentHandler extends DefaultHandler {
 		}
 		if (parents.contains("abstract")) {
 			currentAbstract.append(ch, start, length);
+		}
+		if (parents.contains("claim-text")) {
+			currentClaim.append(ch, start, length);
 		}
 	}
 

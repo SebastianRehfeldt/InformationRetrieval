@@ -8,13 +8,13 @@ import java.util.Map;
 // TODO write tests!
 public final class TableMerger {
 
-	public static <T> void merge(Path merged, Path file1, Path file2, Class<Mergeable<T>> clazz, Serializer<Mergeable<T>> serializer) {
-		TableWriter<Mergeable<T>> writer = new TableWriter<>(merged, false, 4096, clazz, serializer);
-		TableReader<Mergeable<T>> reader1 = new TableReader<>(file1, clazz, serializer);
-		TableReader<Mergeable<T>> reader2 = new TableReader<>(file2, clazz, serializer);
+	public static <T extends Mergeable<T>> void merge(Path merged, Path file1, Path file2, Class<T> clazz, Serializer<T> serializer) {
+		TableWriter<T> writer = new TableWriter<>(merged, false, 4096, clazz, serializer);
+		TableReader<T> reader1 = new TableReader<>(file1, clazz, serializer);
+		TableReader<T> reader2 = new TableReader<>(file2, clazz, serializer);
 
-		Map.Entry<String, Mergeable<T>> entry1 = reader1.readNext();
-		Map.Entry<String, Mergeable<T>> entry2 = reader2.readNext();
+ 		Map.Entry<String, T> entry1 = reader1.readNext();
+		Map.Entry<String, T> entry2 = reader2.readNext();
 
 		while (entry1 != null && entry2 != null) {
 			String key1 = entry1.getKey();
@@ -45,9 +45,11 @@ public final class TableMerger {
 	}
 
 	public interface Mergeable<T> {
+
+
 		/**
 		 * return a copy that is this object merged with {@code other}
 		 */
-		Mergeable<T> mergedWith(Mergeable<T> other);
+		T mergedWith(T other);
 	}
 }

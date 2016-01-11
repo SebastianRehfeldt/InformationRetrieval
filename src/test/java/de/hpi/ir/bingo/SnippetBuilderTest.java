@@ -12,7 +12,7 @@ public class SnippetBuilderTest {
 
 	SnippetBuilder snippetBuilder = new SnippetBuilder();
 	PatentData patent = new PatentData(1, "foo bar test",
-			"foo bar mobile device. bar foo bad liebenwerda. hamster foo mobile");
+			"foo bar mobile device. bar foo bad liebenwerda. hamster foo mobile", "");
 
 	@Before
 	public void setup() {
