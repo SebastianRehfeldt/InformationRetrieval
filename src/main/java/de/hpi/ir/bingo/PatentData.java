@@ -107,6 +107,10 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 		return claimText;
 	}
 
+	public int getClaimOffset() {
+		return claimOffset;
+	}
+
 	public void setClaimOffset(int claimOffset) {
 		this.claimOffset = claimOffset;
 	}

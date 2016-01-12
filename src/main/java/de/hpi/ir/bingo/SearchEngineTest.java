@@ -7,7 +7,6 @@ import java.util.List;
 
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 import de.hpi.ir.bingo.evaluation.WebFile;
 
@@ -21,9 +20,10 @@ import de.hpi.ir.bingo.evaluation.WebFile;
  */
 public class SearchEngineTest {
 
-	private static final boolean CREATE_INDEX = true;
-	private static final boolean COMPRESS = true;
+	private static final boolean CREATE_INDEX = false;
+	private static final boolean COMPRESS = false;
 	private static final boolean READ_COMPRESSED = true;
+	public static final String DIRECTORY = "";
 
 	public static void main(String args[]) throws Exception {
 
@@ -32,9 +32,12 @@ public class SearchEngineTest {
 		long start = System.currentTimeMillis();
 
 		if (CREATE_INDEX)
-			myEngine.index("");
+			myEngine.index(DIRECTORY);
 		if (COMPRESS)
-			myEngine.compressIndex(""); //String directory
+			myEngine.compressIndex(DIRECTORY); //String directory
+
+		//myEngine.printIndexStats(DIRECTORY);
+		//System.exit(0);
 
 		long time = System.currentTimeMillis() - start;
 
@@ -43,9 +46,9 @@ public class SearchEngineTest {
 		// myEngine.loadIndex(String directory)
 
 		if (READ_COMPRESSED)
-			myEngine.loadCompressedIndex("");
+			myEngine.loadCompressedIndex(DIRECTORY);
 		else
-			myEngine.loadIndex("");
+			myEngine.loadIndex(DIRECTORY);
 
 		WebFile webFile = new WebFile();
 
@@ -62,7 +65,6 @@ public class SearchEngineTest {
 			List<String> titles = myEngine.getTitles(results);
 
 			List<String> goldStandard = webFile.getGoogleRanking(query);
-
 
 			time = System.currentTimeMillis() - start;
 

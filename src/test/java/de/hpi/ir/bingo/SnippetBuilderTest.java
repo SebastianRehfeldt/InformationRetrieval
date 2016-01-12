@@ -17,6 +17,7 @@ public class SnippetBuilderTest {
 	@Before
 	public void setup() {
 		patent.setAbstractOffset(3);
+		patent.setClaimOffset(14);
 	}
 
 	@Test
@@ -24,6 +25,13 @@ public class SnippetBuilderTest {
 		PostingListItem item = new PostingListItem(1, new int[]{9, 10}, 14,10);//bad liebenwerda
 		String snippet = snippetBuilder.createSnippet(patent, item);
 		assertThat(snippet).isEqualTo("bar foo bad liebenwerda");
+	}
+
+	@Test
+	public void testCreateSnippetWithClaim() throws Exception {
+		PostingListItem item = new PostingListItem(1, new int[]{20}, 14,10);//bad liebenwerda
+		String snippet = snippetBuilder.createSnippet(patent, item);
+		assertThat(snippet).isEqualTo("foo bar mobile device");
 	}
 
 	@Test

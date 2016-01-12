@@ -15,10 +15,14 @@ public class SnippetBuilder {
 		int abstractOffset = patent.getAbstractOffset();
 		int start = 0;
 		IntArrayList positions = item.getPositions();
-		while (start < positions.size() && positions.get(start) < abstractOffset)
+		int lastValidPosition = 0;
+		while (lastValidPosition < positions.size() && positions.getInt(lastValidPosition) < patent.getClaimOffset())
+			lastValidPosition++;
+
+		while (start < lastValidPosition && positions.get(start) < abstractOffset)
 			start++; // skip title
 
-		if (start == positions.size()) {
+		if (start == lastValidPosition) {
 			int end = patent.getAbstractText().indexOf('.');
 			boolean addElipses = false;
 			if (end > 50) {
@@ -31,8 +35,8 @@ public class SnippetBuilder {
 		int bestStart = 0;
 		int bestEnd = 0;
 		int end = start;
-		while (end < positions.size()) {
-			while (end < positions.size() && positions.get(end) - positions.get(start) <= WINDOWS_SIZE) {
+		while (end < lastValidPosition) {
+			while (end < lastValidPosition && positions.getInt(end) - positions.getInt(start) <= WINDOWS_SIZE) {
 				end++;
 			}
 			if (bestEnd - bestStart < end - start) {
@@ -40,7 +44,7 @@ public class SnippetBuilder {
 				bestEnd = end;
 			}
 			// window found
-			while (end < positions.size() && positions.get(end) - positions.get(start) > WINDOWS_SIZE) {
+			while (end < lastValidPosition && positions.get(end) - positions.get(start) > WINDOWS_SIZE) {
 				start++;
 			}
 		}

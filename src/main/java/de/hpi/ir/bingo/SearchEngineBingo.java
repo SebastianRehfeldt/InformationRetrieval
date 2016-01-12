@@ -1,5 +1,6 @@
 package de.hpi.ir.bingo;
 
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.file.Files;
@@ -47,7 +48,7 @@ public class SearchEngineBingo extends SearchEngine {
 		//String fileName = "res/testData.xml";
 		//String fileName = "compressed_patents/ipg150106.fixed.zip";
 		String fileName = "compressed_patents/patentData.zip";
-		new SearchEngineIndexer().createIndex(fileName, directory, "index", PostingList.NORMAL_SERIALIZER);
+		new SearchEngineIndexer(directory).createIndex(fileName, "index", PostingList.NORMAL_SERIALIZER);
 	}
 
 	@Override
@@ -59,6 +60,7 @@ public class SearchEngineBingo extends SearchEngine {
 
 	@Override
 	void compressIndex(String directory) {
+		System.out.println("compressing index");
 		TableReader<PostingList> reader = new TableReader<>(Paths.get(directory, "index"), PostingList.class,
 				PostingList.NORMAL_SERIALIZER);
 		TableWriter<PostingList> writer = new TableWriter<>(Paths.get(directory, "compressed-index"), true,
@@ -69,6 +71,22 @@ public class SearchEngineBingo extends SearchEngine {
 		}
 		reader.close();
 		writer.close();
+	}
+
+	void printIndexStats(String directory) {
+		System.out.println("writing stats");
+		TableReader<PostingList> reader = new TableReader<>(Paths.get(directory, "index"), PostingList.class,
+				PostingList.NORMAL_SERIALIZER);
+		Map.Entry<String, PostingList> posting;
+		try {
+			BufferedWriter writer = Files.newBufferedWriter(Paths.get("stats.txt"), Charsets.UTF_8);
+			while ((posting = reader.readNext()) != null) {
+				writer.write(posting.getKey() + "|||" + posting.getValue().getDocumentCount() + "\n");
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+		reader.close();
 	}
 
 	@Override

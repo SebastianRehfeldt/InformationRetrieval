@@ -8,8 +8,8 @@ import java.util.Map;
 // TODO write tests!
 public final class TableMerger {
 
-	public static <T extends Mergeable<T>> void merge(Path merged, Path file1, Path file2, Class<T> clazz, Serializer<T> serializer) {
-		TableWriter<T> writer = new TableWriter<>(merged, false, 4096, clazz, serializer);
+	public static <T extends Mergeable<T>> void merge(Path merged, Path file1, Path file2, boolean writeIndex, Class<T> clazz, Serializer<T> serializer) {
+		TableWriter<T> writer = new TableWriter<>(merged, writeIndex, 4096, clazz, serializer);
 		TableReader<T> reader1 = new TableReader<>(file1, clazz, serializer);
 		TableReader<T> reader2 = new TableReader<>(file2, clazz, serializer);
 
@@ -32,11 +32,13 @@ public final class TableMerger {
 				entry2 = reader2.readNext();
 			}
 		}
-		if (entry1 != null) {
+		while (entry1 != null) {
 			writer.put(entry1.getKey(), entry1.getValue());
+			entry1 = reader1.readNext();
 		}
-		if (entry2 != null) {
+		while (entry2 != null) {
 			writer.put(entry2.getKey(), entry2.getValue());
+			entry2 = reader2.readNext();
 		}
 
 		writer.close();
