@@ -16,15 +16,13 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Stack;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class SearchEngineIndexer {
@@ -58,13 +56,13 @@ public class SearchEngineIndexer {
 				long free = Runtime.getRuntime().freeMemory();
 				System.out.println("read: " + i + " available: " + free/1024/1024 + "mb" + " passed: " + stopwatch);
 				if(free / (double)totalMemory < 0.25) {
-					writeToDisk(indexName, indexCounter.incrementAndGet(), serializer, index, patents);
+					writeToDisk(indexName, indexCounter.incrementAndGet(), false, serializer, index, patents);
 					System.out.println("index written to disk!!");
 				}
 			}
 		});
 
-		writeToDisk(indexName, indexCounter.incrementAndGet(), serializer, index, patents);
+		writeToDisk(indexName, indexCounter.incrementAndGet(), true, serializer, index, patents);
 
 		// merge!
 		try {
@@ -82,6 +80,12 @@ public class SearchEngineIndexer {
 		for (int j = 1; j <= parts; j++) {
 			files.add(Paths.get(directory, indexName + j));
 		}
+		if(files.size() == 1) {
+			Path file = files.poll();
+			Files.move(file, Paths.get(directory, indexName), StandardCopyOption.REPLACE_EXISTING);
+			Files.move(Paths.get(directory,file.getFileName()+".index"), Paths.get(directory, indexName+".index"), StandardCopyOption.REPLACE_EXISTING);
+		}
+
 		Queue<Path> nextGen = new ArrayDeque<>();
 		while (files.size() > 1) {
 			Path a = files.poll();
@@ -104,12 +108,12 @@ public class SearchEngineIndexer {
 		}
 	}
 
-	private void writeToDisk(String indexName, int counter, Serializer<PostingList> serializer, Map<String, PostingList> index, Map<String, PatentData> patents) {
-		TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, indexName + counter), false, PostingList.class, serializer);
+	private void writeToDisk(String indexName, int counter, boolean createIndexFile, Serializer<PostingList> serializer, Map<String, PostingList> index, Map<String, PatentData> patents) {
+		TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, indexName + counter), createIndexFile, PostingList.class, serializer);
 		indexWriter.writeMap(index);
 		indexWriter.close();
 
-		TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents-temp" + counter), false, PatentData.class, null);
+		TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents-temp" + counter), createIndexFile, PatentData.class, null);
 		patentWriter.writeMap(patents);
 		patentWriter.close();
 

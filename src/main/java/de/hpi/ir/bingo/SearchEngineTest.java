@@ -1,14 +1,14 @@
 package de.hpi.ir.bingo;
 
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.List;
-
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 
 import de.hpi.ir.bingo.evaluation.WebFile;
+
+import java.io.Writer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.List;
 
 /**
  * @author: Bingo
@@ -21,9 +21,10 @@ import de.hpi.ir.bingo.evaluation.WebFile;
 public class SearchEngineTest {
 
 	private static final boolean CREATE_INDEX = false;
-	private static final boolean COMPRESS = false;
+	private static final boolean COMPRESS = false	;
 	private static final boolean READ_COMPRESSED = true;
-	public static final String DIRECTORY = "";
+
+	public static final String DIRECTORY = "fullindex";
 
 	public static void main(String args[]) throws Exception {
 
@@ -54,8 +55,10 @@ public class SearchEngineTest {
 
 
 		Writer resultWriter = Files.newBufferedWriter(Paths.get("queryresults.txt"), Charsets.UTF_8);
-		List<String> queries = ImmutableList.of("add-on module", "digital signature", "data processing", "\"a scanning\"");
-		//List<String> queries = ImmutableList.of("rootki* OR \"mobile devic*\"");
+		//List<String> queries = ImmutableList.of("add-on module", "digital signature", "data processing", "\"a scanning\"");
+		List<String> queries = ImmutableList.of(
+				"responsive applications for android tablet", "cloud computing security issues",
+				"cloud NOT smart", "\"3-D miniatures\"", "healthcare AND services");
 		int topK = 5;
 
 		for (String query : queries) {
@@ -63,16 +66,16 @@ public class SearchEngineTest {
 
 			List<SearchEngineBingo.SearchResult> results = myEngine.searchWithSearchResult(query, topK); //topK, prf
 			List<String> titles = myEngine.getTitles(results);
-
-			List<String> goldStandard = webFile.getGoogleRanking(query);
-
 			time = System.currentTimeMillis() - start;
 
 			System.out.print("Searching Time:\t" + time + "\tms\n");
 
+			List<String> goldStandard = webFile.getGoogleRanking(query);
+
 			resultWriter.write("\"" + query + "\"\n");
 			double ndcg = myEngine.computeNdcg(goldStandard, titles, topK);
-			resultWriter.write("NDCG: " + ndcg + "\n");
+			System.out.printf("NDCG: %.3f\n", ndcg);
+			resultWriter.write(String.format("NDCG: %.3f\n", ndcg));
 			if (results.isEmpty()) {
 				System.out.println("No results found");
 			} else {

@@ -45,9 +45,9 @@ public class SearchEngineBingo extends SearchEngine {
 
 	@Override
 	void index(String directory) {
-		//String fileName = "res/testData.xml";
+		String fileName = "res/testData.xml";
 		//String fileName = "compressed_patents/ipg150106.fixed.zip";
-		String fileName = "compressed_patents/patentData.zip";
+		//String fileName = "compressed_patents/patentData.zip";
 		new SearchEngineIndexer(directory).createIndex(fileName, "index", PostingList.NORMAL_SERIALIZER);
 	}
 
@@ -161,23 +161,31 @@ public class SearchEngineBingo extends SearchEngine {
 	// better signature with List and double instead of ArrayList and Double
 	double computeNdcg(List<String> goldRanking, List<String> ranking, int p) {
 		Map<String, Double> gains = Maps.newHashMap();
+		double perfectDcg = 0;
 		for (int i = 0; i < goldRanking.size(); i++) {
 			double gain = 1.0 + Math.floor(10 * Math.pow(0.5, 0.1 * (i+1)));
-			gains.put(goldRanking.get(i), gain);
+			gains.putIfAbsent(goldRanking.get(i), gain);
+			if (i < ranking.size()) {
+				if (i == 0) {
+					perfectDcg += gain;
+				} else {
+					perfectDcg += gain / ((Math.log(i + 1) / LOG2));
+				}
+			}
 		}
-		double ndcg = 0;
+		double dcg = 0;
 		for (int i = 0; i < Math.min(p, ranking.size()); i++) {
 			String title = ranking.get(i);
 			Double gain = gains.get(title);
 			if (gain != null) {
 				if (i == 0) {
-					ndcg += gain;
+					dcg += gain;
 				} else {
-					ndcg += gain / (Math.log(i + 1) / LOG2);
+					dcg += gain / ((Math.log(i + 1) / LOG2));
 				}
 			}
 		}
-		return ndcg;
+		return dcg/perfectDcg;
 	}
 
 	//printing

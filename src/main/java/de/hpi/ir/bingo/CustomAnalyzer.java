@@ -6,19 +6,17 @@ import org.apache.lucene.analysis.Tokenizer;
 import org.apache.lucene.analysis.core.LowerCaseFilter;
 import org.apache.lucene.analysis.core.StopFilter;
 import org.apache.lucene.analysis.en.EnglishPossessiveFilter;
-import org.apache.lucene.analysis.en.PorterStemFilter;
 import org.apache.lucene.analysis.miscellaneous.SetKeywordMarkerFilter;
 import org.apache.lucene.analysis.snowball.SnowballFilter;
-import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.analysis.standard.StandardFilter;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
-import org.apache.lucene.analysis.standard.std40.StandardTokenizer40;
 import org.apache.lucene.analysis.util.CharArraySet;
 import org.apache.lucene.analysis.util.StopwordAnalyzerBase;
-import org.apache.lucene.util.Version;
 import org.tartarus.snowball.ext.EnglishStemmer;
 
 import java.io.Reader;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * {@link Analyzer} for English.
@@ -26,37 +24,45 @@ import java.io.Reader;
 public final class CustomAnalyzer extends StopwordAnalyzerBase {
 	private final CharArraySet stemExclusionSet;
 
-	/**
-	 * Atomically loads the DEFAULT_STOP_SET in a lazy fashion once the outer class
-	 * accesses the static final set the first time.;
-	 */
-	private static class DefaultSetHolder {
-		static final CharArraySet DEFAULT_STOP_SET = StandardAnalyzer.STOP_WORDS_SET;
+	final static CharArraySet DEFAULT_STOP_SET;
+
+	static {
+		List<CharSequence> stopWords = Arrays.asList(
+				"a", "an", "and", "are", "as", "at", "be", "but", "by",
+				"for", "if", "in", "into", "is", "it",
+				"no", "not", "of", "on", "or", "such",
+				"that", "the", "their", "then", "there", "these",
+				"they", "this", "to", "was", "will", "with",
+				// additional:
+				"1", "2", "compris", "claim", "wherein", "3", "4", "5", "6", "7", "from", "8",
+				"9", "10", "one", "includ", "11", "further", "12", "have", "least",
+				"13", "first", "14", "second", "15", "which", "between", "16", "each",
+				"use", "17", "accord", "has", "be", "18", "plural", "when", "form",
+				"base", "configur", "than", "19", "20", "said", "more", "two", "can"
+		);
+
+		CharArraySet stopSet = new CharArraySet(stopWords, false);
+		DEFAULT_STOP_SET = CharArraySet.unmodifiableSet(stopSet);
 	}
 
 	public CustomAnalyzer() {
-		super(DefaultSetHolder.DEFAULT_STOP_SET);
+		super(DEFAULT_STOP_SET);
 		this.stemExclusionSet = CharArraySet.unmodifiableSet(CharArraySet.EMPTY_SET);
 	}
 
 	/**
-	 * Creates a
-	 * {@link org.apache.lucene.analysis.Analyzer.TokenStreamComponents}
-	 * which tokenizes all the text in the provided {@link Reader}.
+	 * Creates a {@link org.apache.lucene.analysis.Analyzer.TokenStreamComponents} which tokenizes
+	 * all the text in the provided {@link Reader}.
 	 */
 	@Override
 	protected TokenStreamComponents createComponents(String fieldName) {
 		final Tokenizer source;
-		if (getVersion().onOrAfter(Version.LUCENE_4_7_0)) {
-			source = new StandardTokenizer();
-		} else {
-			source = new StandardTokenizer40();
-		}
+		source = new StandardTokenizer();
 		TokenStream result = new StandardFilter(source);
 		result = new EnglishPossessiveFilter(result);
 		result = new LowerCaseFilter(result);
-		result = new StopFilter(result, stopwords); // TODO use patent stopwords?
-		if(!stemExclusionSet.isEmpty())
+		result = new StopFilter(result, stopwords);
+		if (!stemExclusionSet.isEmpty())
 			result = new SetKeywordMarkerFilter(result, stemExclusionSet);
 		result = new SnowballFilter(result, new EnglishStemmer());
 		return new TokenStreamComponents(source, result);

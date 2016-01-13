@@ -16,7 +16,7 @@ public class SearchEngineTokenizer {
 
 	private final Analyzer analyzer = new CustomAnalyzer();
 
-	public List<Token> tokenizeStopStem(Reader reader) {
+	private List<Token> tokenizeStopStem(Reader reader) {
 
 		try {
 			TokenStream stream = analyzer.tokenStream("", reader);
@@ -36,6 +36,7 @@ public class SearchEngineTokenizer {
 	}
 
 	public List<Token> tokenizeStopStem(String text) {
+		text = text.replaceAll("(\\w+)-(\\w+)", "$1$2 $1 $2");
 		return tokenizeStopStem(new StringReader(text));
 	}
 }
