@@ -37,6 +37,7 @@ public final class TableUtil {
 
 	public static Output createOutput(Path file) {
 		try {
+			Files.createDirectories(file.getParent());
 			return new Output(Files.newOutputStream(file));
 		} catch (IOException e) {
 			throw new RuntimeException(e);

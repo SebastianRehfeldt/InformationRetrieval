@@ -21,10 +21,8 @@ import java.util.List;
 public class SearchEngineTest {
 
 	private static final boolean CREATE_INDEX = false;
-	private static final boolean COMPRESS = false	;
+	private static final boolean COMPRESS = false;
 	private static final boolean READ_COMPRESSED = true;
-
-	public static final String DIRECTORY = "fullindex";
 
 	public static void main(String args[]) throws Exception {
 
@@ -33,9 +31,9 @@ public class SearchEngineTest {
 		long start = System.currentTimeMillis();
 
 		if (CREATE_INDEX)
-			myEngine.index(DIRECTORY);
+			myEngine.index();
 		if (COMPRESS)
-			myEngine.compressIndex(DIRECTORY); //String directory
+			myEngine.compressIndex(); //String directory
 
 		//myEngine.printIndexStats(DIRECTORY);
 		//System.exit(0);
@@ -47,9 +45,9 @@ public class SearchEngineTest {
 		// myEngine.loadIndex(String directory)
 
 		if (READ_COMPRESSED)
-			myEngine.loadCompressedIndex(DIRECTORY);
+			myEngine.loadCompressedIndex();
 		else
-			myEngine.loadIndex(DIRECTORY);
+			myEngine.loadIndex();
 
 		WebFile webFile = new WebFile();
 
