@@ -175,6 +175,7 @@ public class WebFile {
         int safeNumber = 100;  // to get enough US utility patents and exclude others
         try {
             // issue the query
+            query = query.replace("NOT ", "-");
             String queryTerms = query.replaceAll(" ", "+");
             String queryUrl = "https://www.google.com/search?hl=en&q=" + queryTerms + "&tbm=pts&num=" + safeNumber + "&tbs=ptso:us,ptss:g,ptst:u";
             String page = "";
@@ -190,7 +191,7 @@ public class WebFile {
                 Element link = Jsoup.parse(textMatched).select("a").first();
                 String url = link.attr("href");
                 //  System.out.print(url + "\n");
-                Pattern patentPattern = Pattern.compile("https://www.google.de/patents/US(.*?)?dq=");
+                Pattern patentPattern = Pattern.compile("https://www.google.de/patents/US(.*?)\\?dq=");
                 Matcher patentMatcher = patentPattern.matcher(url);
                 String patentNumber = "";
                 while (patentMatcher.find()) {

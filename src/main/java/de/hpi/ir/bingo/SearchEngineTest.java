@@ -56,9 +56,8 @@ public class SearchEngineTest {
 		Writer resultWriter = Files.newBufferedWriter(Paths.get("queryresults.txt"), Charsets.UTF_8);
 		//List<String> queries = ImmutableList.of("add-on module", "digital signature", "data processing", "\"a scanning\"");
 		List<String> queries = ImmutableList.of(
-				"responsive applications for android tablet", "cloud computing security issues",
-				"cloud NOT smart", "\"3-D miniatures\"", "healthcare AND services");
-		int topK = 5;
+				"\"graph editor\"", "\"social trend\"", "fossil hydrocarbons", "physiological AND saline", "tires NOT pressure");
+		int topK = 20;
 
 		for (String query : queries) {
 			start = System.currentTimeMillis();
