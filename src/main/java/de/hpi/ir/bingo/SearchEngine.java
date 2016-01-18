@@ -21,7 +21,7 @@ import java.util.ArrayList;
 public abstract class SearchEngine {
 
 	// paths
-	protected final static String baseDirectory = "k:/";  /************* Define your baseDirectory here !! ******************/
+	protected final static String baseDirectory = "";  /************* Define your baseDirectory here !! ******************/
 	protected static String teamDirectory; // don't change this
 	// directory containing all xml files from PatentData.zip :
 	protected final static String dataDirectory = "";  /************* Define your dataDirectory here !! ******************/

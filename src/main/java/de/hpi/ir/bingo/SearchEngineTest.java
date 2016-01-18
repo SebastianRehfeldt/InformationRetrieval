@@ -3,6 +3,7 @@ package de.hpi.ir.bingo;
 import com.google.common.base.Charsets;
 import com.google.common.collect.ImmutableList;
 
+import de.hpi.ir.bingo.evaluation.CachedWebfile;
 import de.hpi.ir.bingo.evaluation.WebFile;
 
 import java.io.Writer;
@@ -49,7 +50,7 @@ public class SearchEngineTest {
 		else
 			myEngine.loadIndex();
 
-		WebFile webFile = new WebFile();
+		CachedWebfile webFile = new CachedWebfile();
 
 
 		Writer resultWriter = Files.newBufferedWriter(Paths.get("queryresults.txt"), Charsets.UTF_8);
@@ -63,7 +64,7 @@ public class SearchEngineTest {
 			start = System.currentTimeMillis();
 
 			List<SearchEngineBingo.SearchResult> results = myEngine.searchWithSearchResult(query, topK); //topK, prf
-			List<String> titles = myEngine.getTitles(results);
+			List<String> patentIds = myEngine.getIds(results);
 			time = System.currentTimeMillis() - start;
 
 			System.out.print("Searching Time:\t" + time + "\tms\n");
@@ -71,20 +72,21 @@ public class SearchEngineTest {
 			List<String> goldStandard = webFile.getGoogleRanking(query);
 
 			resultWriter.write("\"" + query + "\"\n");
-			double ndcg = myEngine.computeNdcg(goldStandard, titles, topK);
+			double ndcg = myEngine.computeNdcg(goldStandard, patentIds, topK);
 			System.out.printf("NDCG: %.3f\n", ndcg);
 			resultWriter.write(String.format("NDCG: %.3f\n", ndcg));
 			if (results.isEmpty()) {
 				System.out.println("No results found");
 			} else {
 				for (SearchEngineBingo.SearchResult result : results) {
-					double gain = myEngine.computeNdcg(goldStandard, ImmutableList.of(result.title), 1);
+					double gain = myEngine.computeNdcg(goldStandard, ImmutableList.of(""+result.patentId), 1);
 					System.out.println(result + "\nGain:" + gain + "\n");
 					resultWriter.write(result + "\nGain:" + gain + "\n\n");
 				}
 			}
 
 			resultWriter.write("\n");
+			System.out.println();
 		}
 		resultWriter.close();
 

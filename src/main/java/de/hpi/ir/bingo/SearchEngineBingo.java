@@ -122,6 +122,10 @@ public class SearchEngineBingo extends SearchEngine {
 		return result.stream().map(r -> r.title).collect(Collectors.toList());
 	}
 
+	public List<String> getIds(List<SearchResult> result) {
+		return result.stream().map(r -> Integer.toString(r.patentId)).collect(Collectors.toList());
+	}
+
 	List<SearchResult> searchWithSearchResult(String query, int topK) {
 		System.out.println(query);
 

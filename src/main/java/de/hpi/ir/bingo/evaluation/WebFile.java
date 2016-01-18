@@ -1,32 +1,19 @@
+
 package de.hpi.ir.bingo.evaluation;
 
-import com.esotericsoftware.kryo.io.Input;
-import com.esotericsoftware.kryo.io.Output;
-
-import de.hpi.ir.bingo.index.TableUtil;
-
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
-import org.omg.SendingContext.RunTimeOperations;
 
 /*
 * use the function 'ArrayList <String> getGoogleRanking(String query)' to get the gold rankings from google for a given query and compute NDCG later on
-* this function returns the patent titles that google returned for a given query
-* the result set will be at most 100 US utility patents (int safeNumber)
+* this function returns the patent IDs that google returned for this query
+* the result set will be at most 100 US utility patent grants from 2011 to 2015
 */
 
 public class WebFile {
@@ -46,7 +33,7 @@ public class WebFile {
      * @throws java.net.UnknownServiceException
      * @throws java.net.SocketTimeoutException
      */
-    public void openWebFile(String urlString)
+    private void openWebFile(String urlString)
             throws java.io.IOException, java.net.UnknownServiceException, java.net.SocketTimeoutException {
         // Open a URL connection.
         final java.net.URL url = new java.net.URL(urlString);
@@ -133,7 +120,7 @@ public class WebFile {
      *
      * @return
      */
-    public Object getContent() {
+    private Object getContent() {
         return content;
     }
 
@@ -142,7 +129,7 @@ public class WebFile {
      *
      * @return
      */
-    public int getResponseCode() {
+    private int getResponseCode() {
         return responseCode;
     }
 
@@ -151,7 +138,7 @@ public class WebFile {
      *
      * @return
      */
-    public java.util.Map<String, java.util.List<String>> getHeaderFields() {
+    private java.util.Map<String, java.util.List<String>> getHeaderFields() {
         return responseHeader;
     }
 
@@ -160,7 +147,7 @@ public class WebFile {
      *
      * @return
      */
-    public java.net.URL getURL() {
+    private java.net.URL getURL() {
         return responseURL;
     }
 
@@ -169,133 +156,60 @@ public class WebFile {
      *
      * @return
      */
-    public String getMIMEType() {
+    private String getMIMEType() {
         return MIMEtype;
     }
 
-    // returns the patent titles from google patent search engine for a given query string
-    // the titles returned will be at most 100
-    public List<String> getGoogleRanking(String query) {
-        List<String> cached = getCached(query);
-        if (cached != null) {
-            return cached;
-        }
-        
+    // returns at most 100 patent IDs
+    public ArrayList <String> getGoogleRanking(String query) {
+
+
+        // only US : &tbs=ptso:us
+        // only US grants : &tbs=ptso:us,ptss:g
+        // only US utility grants : &tbs=ptso:us,ptss:g,ptst:u
+
+        String minID = "7861317"; // 2011
+        String maxID = "8984661"; // 2015
+
         ArrayList <String> ranking = new ArrayList <>();
         int safeNumber = 100;  // to get enough US utility patents and exclude others
         try {
             // issue the query
             String queryTerms = query.replaceAll(" ", "+");
-            String queryUrl = "https://www.google.com/search?hl=en&q=" + queryTerms + "&tbm=pts&num=" + safeNumber; // only English patents
+            String queryUrl = "https://www.google.com/search?hl=en&q=" + queryTerms + "&tbm=pts&num=" + safeNumber + "&tbs=ptso:us,ptss:g,ptst:u";
             String page = "";
             openWebFile(queryUrl);
             page = (String) getContent();
-            // get all patent urls returned from google (only the utility ones)
-            LinkedHashMap <String, String> patents = new LinkedHashMap <>(); // key: patent url, value: patent title
-            patternUrlCheck(page, patents); // if utility, store it
-            // get the titles
-            for (Map.Entry <String, String> patent : patents.entrySet()) {
-                String patentTitle = patent.getValue();
-                String patentUrl = patent.getKey();
-                // if short title
-                if (patentTitle.contains("...")) {
-                    openWebFile(patentUrl);
-                    String patentText = (String) getContent();
-                    // find the original title
-                    String completeTitle = "";
-                    completeTitle = patternTitleCheck(patentText);
-                    ranking.add(completeTitle);
-                } 
-                // if whole title
-                else {
-                    ranking.add(patentTitle);
+
+            Pattern pattern = Pattern.compile("<div><h3 class=\"r\">(.*?)</a></h3></div>");
+            Matcher matcher = pattern.matcher(page);
+            String textMatched = "";
+            while (matcher.find()) {
+                textMatched = matcher.group(1);
+                // System.out.print("textMatched " + textMatched + "\n");
+                Element link = Jsoup.parse(textMatched).select("a").first();
+                String url = link.attr("href");
+                //  System.out.print(url + "\n");
+                Pattern patentPattern = Pattern.compile("https://www.google.de/patents/US(.*?)?dq=");
+                Matcher patentMatcher = patentPattern.matcher(url);
+                String patentNumber = "";
+                while (patentMatcher.find()) {
+                    patentNumber = patentMatcher.group(1); // get the ID
+                    //   System.out.print("patentNumber " + patentNumber + "\n");
+                }
+                if(patentNumber!= null && patentNumber.compareTo(minID) > 0 && patentNumber.compareTo(maxID) < 0) {
+                    ranking.add(patentNumber.replace("?", "")); // without the zero infront of the ID
+                    //   System.out.print(patentNumber + "\n");
                 }
             }
+            //  System.out.print(ranking + "\n");
+
         } catch (IOException ex) {
             Logger.getLogger(WebFile.class.getName()).log(Level.SEVERE, null, ex);
         }
-        cacheRanking(query, ranking);
-        
         return ranking;
     }
 
-    private Map<String, ArrayList<String>> cache;
-    private Path cacheFile = Paths.get("webfilecache.bin");
 
-    private Map<String, ArrayList<String>> getCache() {
-        if (cache == null) {
-            if (cacheFile.toFile().exists()) {
-                try {
-                    Input input = new Input(Files.newInputStream(cacheFile));
-                    cache = (Map<String, ArrayList<String>>) TableUtil.getKryo().readObject(input, HashMap.class);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            } else {
-                cache = new HashMap<>();
-            }
-        }
-        return cache;
-    }
 
-    private void cacheRanking(String query, ArrayList<String> ranking) {
-        getCache().put(query, ranking);
-        try {
-            Output output = new Output(Files.newOutputStream(cacheFile));
-            TableUtil.getKryo().writeObject(output, cache);
-            output.close();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private List<String> getCached(String query) {
-        return getCache().get(query);
-    }
-
-    public void patternUrlCheck(String page, LinkedHashMap <String, String> urls){
-        
-        Pattern pattern = Pattern.compile("<div><h3 class=\"r\">(.*?)</a></h3></div>");
-        Matcher matcher = pattern.matcher(page);
-        String textMatched = "";
-        boolean utility = false;
-        while (matcher.find()) {
-            textMatched = matcher.group(1);
-            Element link = Jsoup.parse(textMatched).select("a").first();
-            String href = link.attr("href");
-            String patentTitle = link.text();
-            // only US utility patents
-            utility = patternUtilityCheck(href);
-            if (utility) urls.put(href, patentTitle);
-        }
-    }
-    
-    public boolean patternUtilityCheck (String currentUrl){
-        
-        Pattern pattern = Pattern.compile("https://www.google.de/patents/US(.*?)?dq=");
-        Matcher matcher = pattern.matcher(currentUrl);
-        String patentSuffix = "";
-        String regex = "\\d+"; // only digits
-        boolean utility = false;
-        while (matcher.find()) {
-            // this is a US patent -> check if it is a utility patent too
-            patentSuffix = matcher.group(1).replaceAll("[^\\d.]", "");
-            if(patentSuffix.matches(regex)) {
-                utility = true;
-                break;
-            }
-        }
-        return utility;
-    }
-    
-    public String patternTitleCheck (String patentText){
-        Pattern pattern = Pattern.compile("<meta name=\"DC.title\" content=\"(.*?)\">");
-        Matcher matcher = pattern.matcher(patentText);
-        String completeTitle = "";
-        if (matcher.find()) {
-            completeTitle = matcher.group(1); // redirect to the patent's page and get the complete title
-        }
-        return completeTitle;
-    }
- 
 }
