@@ -16,6 +16,9 @@ import de.hpi.ir.bingo.SnippetBuilder;
 import de.hpi.ir.bingo.index.Table;
 import de.hpi.ir.bingo.index.TfidfToken;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 public final class NormalQuery implements Query {
 	private static final int PRF_EXTENSION_SIZE = 5;
 
@@ -28,14 +31,14 @@ public final class NormalQuery implements Query {
 	}
 
 	@Override
-	public List<QueryResultItem> execute(Table<PostingList> index, Table<PatentData> patents) {
+	public List<QueryResultItem> execute(Table<PostingList> index, Table<PatentData> patents, Int2ObjectMap<IntList> citations) {
 		if (parts.isEmpty()) {
 			return Collections.emptyList();
 		}
-		QueryResultList resultList = parts.get(0).execute(index);
+		QueryResultList resultList = parts.get(0).execute(index, citations);
 		resultList.calculateTfidfScores(1.0, patents.getSize());
 		for (int i = 1; i < parts.size(); i++) {
-			QueryResultList resultList2 = parts.get(i).execute(index);
+			QueryResultList resultList2 = parts.get(i).execute(index, citations);
 			resultList2.calculateTfidfScores(1.0, patents.getSize());
 			resultList = resultList.combine(resultList2);
 		}
@@ -47,7 +50,7 @@ public final class NormalQuery implements Query {
 			List<String> topToken = getPrfToken(result, patents);
 			System.out.println("extend query with: " + topToken);
 			for (String stringDoubleEntry : topToken) {
-				QueryResultList resultList2 = new TermQuery(stringDoubleEntry).execute(index);
+				QueryResultList resultList2 = new TermQuery(stringDoubleEntry).execute(index, citations);
 				resultList2.calculateTfidfScores(0.1, patents.getSize());
 				resultList = resultList.combine(resultList2);
 			}

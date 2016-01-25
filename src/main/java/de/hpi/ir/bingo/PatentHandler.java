@@ -129,7 +129,12 @@ public class PatentHandler extends DefaultHandler {
 		}
 		if(name.equals("patcit")){
 			if(currentCiteCountry.toString().equals("US") && currentCiteDate.toString().compareTo("20110000")>0){
-				patentCitations.add(Integer.parseInt(currentId.toString()));
+				try {
+					patentCitations.add(Integer.parseInt(currentCiteId.toString()));
+				} catch (NumberFormatException e) {
+					// not a valid integer
+				}
+
 			}
 		}
 		parents.pop();

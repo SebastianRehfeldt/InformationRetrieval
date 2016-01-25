@@ -55,8 +55,9 @@ public class SearchEngineTest {
 
 		Writer resultWriter = Files.newBufferedWriter(Paths.get("queryresults.txt"), Charsets.UTF_8);
 		//List<String> queries = ImmutableList.of("add-on module", "digital signature", "data processing", "\"a scanning\"");
-		List<String> queries = ImmutableList.of(
-				"\"graph editor\"", "\"social trend\"", "fossil hydrocarbons", "physiological AND saline", "tires NOT pressure");
+		//List<String> queries = ImmutableList.of(
+		//		"\"graph editor\"", "\"social trend\"", "fossil hydrocarbons", "physiological AND saline", "tires NOT pressure");
+		List<String> queries = ImmutableList.of("linkTo:8201244");
 		int topK = 20;
 
 		for (String query : queries) {

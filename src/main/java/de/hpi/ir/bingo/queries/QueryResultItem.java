@@ -65,6 +65,9 @@ public class QueryResultItem {
 	}
 
 	public boolean hasTermInTitle() {
+		if (item.getPositions().isEmpty()){
+			return false;
+		}
 		return item.getPositions().get(0) < item.getTitleWordCount();
 	}
 }

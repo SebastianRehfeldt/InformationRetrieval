@@ -21,6 +21,7 @@ public class QueryResultList {
 	// number of QueryResultLists that were combined to create this one
 	private final int combinations;
 
+	/** create a single result **/
 	public QueryResultList(PostingList postingList) {
 		this(Lists.newArrayListWithCapacity(postingList.getItems().size()), 1);
 		for (PostingListItem item : postingList.getItems()) {

@@ -9,6 +9,9 @@ import com.google.common.base.Objects;
 import de.hpi.ir.bingo.PostingList;
 import de.hpi.ir.bingo.index.Table;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 public final class PrefixQuery implements QueryPart {
 	private final String prefix;
 
@@ -18,7 +21,7 @@ public final class PrefixQuery implements QueryPart {
 
 
 	@Override
-	public QueryResultList execute(Table<PostingList> index) {
+	public QueryResultList execute(Table<PostingList> index, Int2ObjectMap<IntList> citations) {
 		List<Map.Entry<String, PostingList>> prefixResult = index.getWithPrefix(prefix);
 		if (prefixResult.isEmpty()) {
 			return new QueryResultList();

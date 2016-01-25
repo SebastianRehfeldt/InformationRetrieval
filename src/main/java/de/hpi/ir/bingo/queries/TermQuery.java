@@ -5,6 +5,9 @@ import com.google.common.base.Objects;
 import de.hpi.ir.bingo.PostingList;
 import de.hpi.ir.bingo.index.Table;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 public final class TermQuery implements QueryPart {
 	private final String term;
 
@@ -33,7 +36,7 @@ public final class TermQuery implements QueryPart {
 	}
 
 	@Override
-	public QueryResultList execute(Table<PostingList> index) {
+	public QueryResultList execute(Table<PostingList> index, Int2ObjectMap<IntList> citations) {
 		PostingList postingList = index.get(term);
 		return postingList == null ? new QueryResultList() : new QueryResultList(postingList);
 	}

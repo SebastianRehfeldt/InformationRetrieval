@@ -27,6 +27,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayDeque;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,6 +89,9 @@ public class SearchEngineIndexer {
 			throw new RuntimeException(e);
 		}
 
+		for (IntList list : citations.values()) {
+			list.sort(Comparator.naturalOrder());
+		}
 		Output citationOutput = TableUtil.createOutput(Paths.get(directory, "citations.index"));
 		TableUtil.getKryo().writeObject(citationOutput, citations);
 		citationOutput.close();

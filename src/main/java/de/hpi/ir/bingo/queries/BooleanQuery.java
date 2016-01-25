@@ -11,6 +11,9 @@ import de.hpi.ir.bingo.PostingList;
 import de.hpi.ir.bingo.PostingListItem;
 import de.hpi.ir.bingo.index.Table;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.IntList;
+
 enum QueryOperators {
 	AND, OR, NOT
 }
@@ -49,14 +52,14 @@ public final class BooleanQuery implements Query {
 	}
 
 	@Override
-	public List<QueryResultItem> execute(Table<PostingList> index, Table<PatentData> patents) {
+	public List<QueryResultItem> execute(Table<PostingList> index, Table<PatentData> patents, Int2ObjectMap<IntList> citations) {
 			if (parts.isEmpty()) {
 				return Collections.emptyList();
 			}
-			QueryResultList resultList = parts.get(0).execute(index);
+			QueryResultList resultList = parts.get(0).execute(index, citations);
 			resultList.calculateTfidfScores(1.0, patents.getSize());
 			for (int i = 1; i < parts.size(); i++) {
-				QueryResultList resultList2 = parts.get(i).execute(index);
+				QueryResultList resultList2 = parts.get(i).execute(index, citations);
 				resultList2.calculateTfidfScores(1.0, patents.getSize());
 
 				switch (queryOperator) {

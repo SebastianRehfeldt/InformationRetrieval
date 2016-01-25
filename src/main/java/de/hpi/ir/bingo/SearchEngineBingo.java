@@ -146,7 +146,7 @@ public class SearchEngineBingo extends SearchEngine {
 		Query queryObject = QueryParser.parse(query);
 		System.out.println(queryObject);
 
-		List<QueryResultItem> result = queryObject.execute(index, patentIndex);
+		List<QueryResultItem> result = queryObject.execute(index, patentIndex, citations);
 
 		List<SearchResult> searchResult = new ArrayList<>();
 

@@ -17,7 +17,7 @@ import de.hpi.ir.bingo.Token;
 
 public class QueryParser {
 
-	private static final String queryPartRegex = "(AND|OR|NOT)|#([0-9]+)|\"(.+?)\"|([^ ]+)";
+	private static final String queryPartRegex = "(AND|OR|NOT)|#([0-9]+)|linkTo:([0-9]+)|\"(.+?)\"|([^ ]+)";
 	private static final Pattern queryPartPattern = Pattern.compile(queryPartRegex);
 
 	private static final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
@@ -26,6 +26,7 @@ public class QueryParser {
 
 		Matcher m = queryPartPattern.matcher(query);
 		List<QueryPart> queryParts = Lists.newArrayList();
+
 		QueryOperators queryOperator = null;
 		int prf = 0;
 		while (m.find()) {
@@ -37,12 +38,17 @@ public class QueryParser {
 			if (prfString != null) {
 				prf = Integer.parseInt(prfString);
 			}
-			String phrase = m.group(3);
+			String linkToId = m.group(3);
+			if (linkToId != null) {
+				int linkTo = Integer.parseInt(linkToId);
+				queryParts.add(new LinkToQuery(linkTo));
+			}
+			String phrase = m.group(4);
 			if (phrase != null) {
 				List<QueryPart> phraseParts = parseParts(phrase);
 				queryParts.add(new PhraseQuery(phraseParts));
 			}
-			String term = m.group(4);
+			String term = m.group(5);
 			if (term != null) {
 				queryParts.addAll(parsePart(term));
 			}
