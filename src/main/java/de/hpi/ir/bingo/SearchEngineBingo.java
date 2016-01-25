@@ -50,16 +50,16 @@ public class SearchEngineBingo extends SearchEngine {
 
 	@Override
 	void index() {
-		String fileName = "res/testData.xml";
+		//String fileName = "res/testData.xml";
 		//String fileName = "compressed_patents/ipg150106.fixed.zip";
-		//String fileName = "k:/data/patentData.zip";
-		new SearchEngineIndexer(teamDirectory).createIndex(fileName, "index", PostingList.NORMAL_SERIALIZER);
+		String fileName = "k:/data/patentData.zip";
+		new SearchEngineIndexer(teamDirectory).createIndex(fileName, PostingList.NORMAL_SERIALIZER);
 	}
 
 	@Override
 	boolean loadIndex() {
-		index = Table.open(Paths.get(teamDirectory, "index"), PostingList.class, PostingList.NORMAL_SERIALIZER);
-		patentIndex = Table.open(Paths.get(teamDirectory, "patents"), PatentData.class, null);
+		index = Table.open(Paths.get(teamDirectory, IndexNames.PostingLists), PostingList.class, PostingList.NORMAL_SERIALIZER);
+		patentIndex = Table.open(Paths.get(teamDirectory, IndexNames.Patents), PatentData.class, null);
 		citations = loadCitation();
 		return true;
 	}
@@ -67,9 +67,9 @@ public class SearchEngineBingo extends SearchEngine {
 	@Override
 	void compressIndex() {
 		System.out.println("compressing index");
-		TableReader<PostingList> reader = new TableReader<>(Paths.get(teamDirectory, "index"), PostingList.class,
+		TableReader<PostingList> reader = new TableReader<>(Paths.get(teamDirectory, IndexNames.PostingLists), PostingList.class,
 				PostingList.NORMAL_SERIALIZER);
-		TableWriter<PostingList> writer = new TableWriter<>(Paths.get(teamDirectory, "compressed-index"), true,
+		TableWriter<PostingList> writer = new TableWriter<>(Paths.get(teamDirectory, IndexNames.PostingListsCompressed), true,
 				PostingList.class, PostingList.COMPRESSING_SERIALIZER);
 		Map.Entry<String, PostingList> posting;
 		while ((posting = reader.readNext()) != null) {
@@ -81,7 +81,7 @@ public class SearchEngineBingo extends SearchEngine {
 
 	void printIndexStats(String directory) {
 		System.out.println("writing stats");
-		TableReader<PostingList> reader = new TableReader<>(Paths.get(directory, "index"), PostingList.class,
+		TableReader<PostingList> reader = new TableReader<>(Paths.get(directory, IndexNames.PostingLists), PostingList.class,
 				PostingList.NORMAL_SERIALIZER);
 		Map.Entry<String, PostingList> posting;
 		try {
@@ -97,15 +97,15 @@ public class SearchEngineBingo extends SearchEngine {
 
 	@Override
 	boolean loadCompressedIndex() {
-		index = Table.open(Paths.get(teamDirectory, "compressed-index"), PostingList.class, PostingList.COMPRESSING_SERIALIZER);
-		patentIndex = Table.open(Paths.get(teamDirectory, "patents"), PatentData.class, null);
+		index = Table.open(Paths.get(teamDirectory, IndexNames.PostingListsCompressed), PostingList.class, PostingList.COMPRESSING_SERIALIZER);
+		patentIndex = Table.open(Paths.get(teamDirectory, IndexNames.Patents), PatentData.class, null);
 		citations = loadCitation();
 		return true;
 	}
 
 	@SuppressWarnings("unchecked")
 	private Int2ObjectMap<IntList> loadCitation() {
-		Input input = TableUtil.createInput(Paths.get(teamDirectory, "citations.index"));
+		Input input = TableUtil.createInput(Paths.get(teamDirectory, IndexNames.Citations));
 		return TableUtil.getKryo().readObject(input, Int2ObjectOpenHashMap.class);
 	}
 

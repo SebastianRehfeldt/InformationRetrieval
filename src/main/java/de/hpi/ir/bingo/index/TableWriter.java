@@ -15,7 +15,7 @@ import java.util.Map;
 
 public final class TableWriter<T> implements AutoCloseable {
 
-	public static final int BLOCK_SIZE = 2048;
+	public static final int BLOCK_SIZE = 1024;
 	private final Output writer;
 	private final Output indexWriter;
 	private final boolean createIndex;

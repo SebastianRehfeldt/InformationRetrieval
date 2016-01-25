@@ -12,7 +12,6 @@ import com.esotericsoftware.kryo.io.Output;
 
 import de.hpi.ir.bingo.index.TableMerger;
 import de.hpi.ir.bingo.index.TfidfToken;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -69,11 +68,14 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 		return importantTerms;
 	}
 
+	private static class Tokenizer {
+		private static SearchEngineTokenizer instance = new SearchEngineTokenizer();
+	}
+
 	public void calculateImportantTerms(Map<String, Double> idf) {
 		Verify.verify(importantTerms.isEmpty());
-		SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
 		// title added multiple times to make it more important...
-		List<Token> tokens = tokenizer.tokenizeStopStem(title + " " + title + " " + title + " " + abstractText);
+		List<Token> tokens = Tokenizer.instance.tokenizeStopStem(title + " " + title + " " + title + " " + abstractText, false);
 		Map<String, Integer> tf = Maps.newHashMap();
 		for (Token token : tokens) {
 			if (tf.containsKey(token.text)) {

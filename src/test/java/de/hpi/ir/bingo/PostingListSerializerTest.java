@@ -38,9 +38,9 @@ public class PostingListSerializerTest {
 		Path tmpFile = folder.newFile().toPath();
 		Output output = TableUtil.createOutput(tmpFile);
 
-		PostingListItem i1 = new PostingListItem(5, new IntArrayList(new int[]{3, 7, 9}),10,10);
-		PostingListItem i2 = new PostingListItem(12, new IntArrayList(new int[]{5, 8}),10,10);
-		PostingListItem i3 = new PostingListItem(27, new IntArrayList(new int[]{9, 10}),10,10);
+		PostingListItem i1 = new PostingListItem(5, new IntArrayList(new int[]{3, 7, 9}),10,(short)10,(short)0);
+		PostingListItem i2 = new PostingListItem(12, new IntArrayList(new int[]{5, 8}),10,(short)10,(short)0);
+		PostingListItem i3 = new PostingListItem(27, new IntArrayList(new int[]{9, 10}),10,(short)10,(short)0);
 		PostingList pl = new PostingList(ImmutableList.of(i1, i2, i3));
 
 		TableUtil.getKryo().writeObject(output, pl, serializer);

@@ -1,25 +1,5 @@
 package de.hpi.ir.bingo;
 
-import com.google.common.base.Stopwatch;
-import com.google.common.base.Verify;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-
-import com.esotericsoftware.kryo.Serializer;
-import com.esotericsoftware.kryo.io.Output;
-
-import de.hpi.ir.bingo.index.TableMerger;
-import de.hpi.ir.bingo.index.TableReader;
-import de.hpi.ir.bingo.index.TableUtil;
-import de.hpi.ir.bingo.index.TableWriter;
-import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.ints.IntListIterator;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,18 +12,42 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.Output;
+import com.google.common.base.Stopwatch;
+import com.google.common.base.Verify;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
+
+import de.hpi.ir.bingo.index.TableMerger;
+import de.hpi.ir.bingo.index.TableReader;
+import de.hpi.ir.bingo.index.TableUtil;
+import de.hpi.ir.bingo.index.TableWriter;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntListIterator;
 
 public class SearchEngineIndexer {
 	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
 
 	private final String directory;
-	
+
 	public SearchEngineIndexer(String directory) {
 		this.directory = directory;
 	}
 
-	public void createIndex(String fileName, String indexName, Serializer<PostingList> serializer) {
+	public void createIndex(String fileName, Serializer<PostingList> serializer) {
 
 		Map<String, PostingList> index = Maps.newHashMap();
 		Map<String, PatentData> patents = Maps.newHashMap();
@@ -52,51 +56,83 @@ public class SearchEngineIndexer {
 		AtomicInteger i = new AtomicInteger(0);
 		AtomicInteger indexCounter = new AtomicInteger(0);
 		Stopwatch stopwatch = Stopwatch.createStarted();
-		
+
 		long totalMemory = Runtime.getRuntime().totalMemory();
-		if (Runtime.getRuntime().freeMemory() < 1800*1024*1024) {
+		if (Runtime.getRuntime().freeMemory() < 1800 * 1024 * 1024) {
 			throw new RuntimeException("run at least with -Xms2g");
 		}
-		PatentHandler.parseXml(fileName, (patent) -> {
-			Map<String, PostingListItem> docIndex = buildIndexForDocument(patent);
-			mergeDocIntoMainIndex(index, docIndex);
-			patents.put(Integer.toString(patent.getPatentId()), patent);
 
-			IntListIterator iter = patent.getCitations().iterator();
-			while(iter.hasNext()) {
-				int cited = iter.nextInt();
-				IntList list = citations.computeIfAbsent(cited, (a) -> new IntArrayList());
-				list.add(patent.getPatentId());
-			}
-			
-			if (i.incrementAndGet()%1000 == 0) {
-				long free = Runtime.getRuntime().freeMemory();
-				System.out.println("read: " + i + " available: " + free/1024/1024 + "mb" + " passed: " + stopwatch);
-				if(free / (double)totalMemory < 0.25) {
-					writeToDisk(indexName, indexCounter.incrementAndGet(), false, serializer, index, patents);
-					System.out.println("index written to disk!!");
+		int THREADS = 4;
+		int QUEUE_SIZE = 10000;
+		BlockingQueue<Runnable> queue = new LinkedBlockingDeque<>(QUEUE_SIZE);
+		ExecutorService processing = new ThreadPoolExecutor(THREADS, THREADS, 0, TimeUnit.MILLISECONDS, queue);
+		BlockingQueue<Runnable> finalizerQueue = new LinkedBlockingDeque<>(QUEUE_SIZE);
+		ExecutorService finalizer = new ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, finalizerQueue);
+
+		PatentHandler.parseXml(fileName, (patent) -> {
+			waitForQueue(queue);
+			Future<Map<String, PostingListItem>> future = processing.submit(() -> {
+				return buildIndexForDocument(patent);
+			});
+			waitForQueue(finalizerQueue);
+			finalizer.submit(() -> {
+				Map<String, PostingListItem> docIndex;
+				try {
+					docIndex = future.get();
+				} catch (InterruptedException | ExecutionException e) {
+					throw new RuntimeException(e);
 				}
-			}
+				mergeDocIntoMainIndex(index, docIndex);
+				patents.put(Integer.toString(patent.getPatentId()), patent);
+
+				IntListIterator iter = patent.getCitations().iterator();
+				while (iter.hasNext()) {
+					int cited = iter.nextInt();
+					IntList list = citations.computeIfAbsent(cited, (a) -> new IntArrayList());
+					list.add(patent.getPatentId());
+				}
+
+				if (i.incrementAndGet() % 1000 == 0) {
+					long free = Runtime.getRuntime().freeMemory();
+					System.out.println("read: " + i + " available: " + free / 1024 / 1024 + "mb" + " passed: " + stopwatch);
+					if (free / (double) totalMemory < 0.25) {
+						writeToDisk(indexCounter.incrementAndGet(), false, serializer, index, patents);
+						System.out.println("index written to disk!!");
+					}
+				}
+			});
 		});
 
-		writeToDisk(indexName, indexCounter.incrementAndGet(), true, serializer, index, patents);
+		processing.shutdown();
+		finalizer.shutdown();
 
-		// merge!
+		writeToDisk(indexCounter.incrementAndGet(), true, serializer, index, patents);
+
+		System.out.println("merging: " + stopwatch);
 		try {
-			mergeIndices(indexName, indexCounter.get(), PostingList.class, serializer);
+			mergeIndices(IndexNames.PostingLists, indexCounter.get(), PostingList.class, serializer);
 			mergeIndices("patents-temp", indexCounter.get(), PatentData.class, null);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 
-		for (IntList list : citations.values()) {
-			list.sort(Comparator.naturalOrder());
-		}
-		Output citationOutput = TableUtil.createOutput(Paths.get(directory, "citations.index"));
+		citations.values().forEach(list -> list.sort(Comparator.naturalOrder()));
+		Output citationOutput = TableUtil.createOutput(Paths.get(directory, IndexNames.Citations));
 		TableUtil.getKryo().writeObject(citationOutput, citations);
 		citationOutput.close();
-		
-		calculateImportantTerms(indexName, serializer);
+
+		System.out.println("postprocessing index " + stopwatch);
+		calculateImportantTerms(serializer);
+		System.out.println("done " + stopwatch);
+	}
+
+	private void waitForQueue(BlockingQueue<Runnable> queue) {
+		try {
+			while (queue.remainingCapacity() == 0)
+				Thread.sleep(10);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private <T extends TableMerger.Mergeable<T>> void mergeIndices(String indexName, int parts, Class<T> clazz, Serializer<T> serializer) throws IOException {
@@ -104,10 +140,10 @@ public class SearchEngineIndexer {
 		for (int j = 1; j <= parts; j++) {
 			files.add(Paths.get(directory, indexName + j));
 		}
-		if(files.size() == 1) {
+		if (files.size() == 1) {
 			Path file = files.poll();
 			Files.move(file, Paths.get(directory, indexName), StandardCopyOption.REPLACE_EXISTING);
-			Files.move(Paths.get(directory,file.getFileName()+".index"), Paths.get(directory, indexName+".index"), StandardCopyOption.REPLACE_EXISTING);
+			Files.move(Paths.get(directory, file.getFileName() + ".index"), Paths.get(directory, indexName + ".index"), StandardCopyOption.REPLACE_EXISTING);
 		}
 
 		Queue<Path> nextGen = new ArrayDeque<>();
@@ -118,7 +154,7 @@ public class SearchEngineIndexer {
 			boolean lastMerge = files.size() == 0 && nextGen.size() == 0;
 			Path dest = Paths.get(directory, indexName + (lastMerge ? "" : parts));
 			System.out.println("merge: " + a + " + " + b + " to " + dest);
-			TableMerger.merge(dest, a, b, lastMerge, clazz , serializer);
+			TableMerger.merge(dest, a, b, lastMerge, clazz, serializer);
 			Files.delete(a);
 			Files.delete(b);
 			nextGen.add(dest);
@@ -132,8 +168,8 @@ public class SearchEngineIndexer {
 		}
 	}
 
-	private void writeToDisk(String indexName, int counter, boolean createIndexFile, Serializer<PostingList> serializer, Map<String, PostingList> index, Map<String, PatentData> patents) {
-		TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, indexName + counter), createIndexFile, PostingList.class, serializer);
+	private void writeToDisk(int counter, boolean createIndexFile, Serializer<PostingList> serializer, Map<String, PostingList> index, Map<String, PatentData> patents) {
+		TableWriter<PostingList> indexWriter = new TableWriter<>(Paths.get(directory, IndexNames.PostingLists + counter), createIndexFile, PostingList.class, serializer);
 		indexWriter.writeMap(index);
 		indexWriter.close();
 
@@ -169,22 +205,22 @@ public class SearchEngineIndexer {
 		int totalSize = titleTokens.size() + abstractTokens.size();
 
 		int pos = 0;
-		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), titleTokens, docIndex);
+		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), abstractTokens.size(), titleTokens, docIndex);
 		patent.setAbstractOffset(pos);
-		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), abstractTokens, docIndex);
+		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), abstractTokens.size(), abstractTokens, docIndex);
 		patent.setClaimOffset(pos);
-		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), claimTokens, docIndex);
+		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), abstractTokens.size(), claimTokens, docIndex);
 		return docIndex;
 	}
 
-	private int addToIndex(int patentId, int offset, int totalSize, int titleWordCount,
-			               List<Token> tokens, Map<String, PostingListItem> docIndex) {
+	private int addToIndex(int patentId, int offset, int totalSize, int titleWordCount,int abstractWordCount,
+						   List<Token> tokens, Map<String, PostingListItem> docIndex) {
 		int position = offset;
 
 		for (Token word : tokens) {
 			PostingListItem item = docIndex.get(word.text);
 			if (item == null) {
-				item = new PostingListItem(patentId, totalSize, titleWordCount);
+				item = new PostingListItem(patentId, totalSize, (short) titleWordCount, (short) abstractWordCount);
 				docIndex.put(word.text, item);
 			}
 			item.addPosition(position++);
@@ -208,13 +244,12 @@ public class SearchEngineIndexer {
 	 * Reads the postinglists to calculate idf values. Reads the patent index and calculates
 	 * the important terms according to their idf values.
 	 */
-	private void calculateImportantTerms(String indexName, Serializer<PostingList> serializer) {
-		System.out.println("postprocessing index");
+	private void calculateImportantTerms(Serializer<PostingList> serializer) {
 		int totalDocumentCount = TableUtil.getTableIndex(Paths.get(directory, "patents-temp")).getSize();
-		TableReader<PostingList> postingReader = new TableReader<>(Paths.get(directory, indexName), PostingList.class, serializer);
+		TableReader<PostingList> postingReader = new TableReader<>(Paths.get(directory, IndexNames.PostingLists), PostingList.class, serializer);
 		Map<String, Double> idf = Maps.newHashMap();
 		Map.Entry<String, PostingList> token = postingReader.readNext();
-		while(token != null) {
+		while (token != null) {
 			double idfValue = Math.log(totalDocumentCount / (double) token.getValue().getDocumentCount());
 			idf.put(token.getKey(), idfValue);
 			Map.Entry<String, PostingList> next = postingReader.readNext();
@@ -224,9 +259,9 @@ public class SearchEngineIndexer {
 		postingReader.close();
 
 		TableReader<PatentData> patentReader = new TableReader<>(Paths.get(directory, "patents-temp"), PatentData.class, null);
-		TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, "patents"), true, PatentData.class, null);
+		TableWriter<PatentData> patentWriter = new TableWriter<>(Paths.get(directory, IndexNames.Patents), true, PatentData.class, null);
 		Map.Entry<String, PatentData> patent = patentReader.readNext();
-		while(patent != null) {
+		while (patent != null) {
 			patent.getValue().calculateImportantTerms(idf);
 			patentWriter.put(patent.getKey(), patent.getValue());
 			Map.Entry<String, PatentData> next = patentReader.readNext();

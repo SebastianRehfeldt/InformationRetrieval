@@ -26,7 +26,7 @@ public class SearchEngineTest {
 	private static final boolean READ_COMPRESSED = true;
 
 	public static void main(String args[]) throws Exception {
-
+		//System.in.read();
 		SearchEngineBingo myEngine = new SearchEngineBingo();
 
 		long start = System.currentTimeMillis();
@@ -55,11 +55,13 @@ public class SearchEngineTest {
 
 		Writer resultWriter = Files.newBufferedWriter(Paths.get("queryresults.txt"), Charsets.UTF_8);
 		//List<String> queries = ImmutableList.of("add-on module", "digital signature", "data processing", "\"a scanning\"");
-		//List<String> queries = ImmutableList.of(
-		//		"\"graph editor\"", "\"social trend\"", "fossil hydrocarbons", "physiological AND saline", "tires NOT pressure");
-		List<String> queries = ImmutableList.of("linkTo:8201244");
-		int topK = 20;
+		//List<String> queries = ImmutableList.of("\"graph editor\"", "\"social trend\"", "fossil hydrocarbons", "physiological AND saline", "tires NOT pressure", "linkTo:8201244");
+		List<String> queries = ImmutableList.of("LinkTo:07920906", "LinkTo:07904949", "LinkTo:08078787",
+												"LinkTo:07865308 AND LinkTo:07925708", "LinkTo:07947864 AND LinkTo:07947142",
+												"review guidelines", "on-chip OR OCV");
+		int topK = 15;
 
+		for (int i = 0; i < 1; i++)
 		for (String query : queries) {
 			start = System.currentTimeMillis();
 
@@ -79,9 +81,14 @@ public class SearchEngineTest {
 				System.out.println("No results found");
 			} else {
 				for (SearchEngineBingo.SearchResult result : results) {
-					double gain = myEngine.computeNdcg(goldStandard, ImmutableList.of(""+result.patentId), 1);
-					System.out.println(result + "\nGain:" + gain + "\n");
-					resultWriter.write(result + "\nGain:" + gain + "\n\n");
+					if (result.snippet.equals("linked")) {
+						System.out.println(result.patentId + " " + result.title);
+						resultWriter.write(result.patentId + " " + result.title + "\n");
+					} else {
+						double gain = myEngine.computeNdcg(goldStandard, ImmutableList.of("" + result.patentId), 1);
+						System.out.println(result + "\nGain:" + gain + "\n");
+						resultWriter.write(result + "\nGain:" + gain + "\n\n");
+					}
 				}
 			}
 

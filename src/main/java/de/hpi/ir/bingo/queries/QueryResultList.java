@@ -189,17 +189,17 @@ public class QueryResultList {
 	}
 
 	public void calculateTfidfScores(double weight, int totalDocumentCount) {
-		for (QueryResultItem item : items) {
-			int titleBoost = 1;
-			if(item.hasTermInTitle()){
-				titleBoost = 2;
-			}
-			item.setScore(Math.log(tfidf(this, item, totalDocumentCount) * weight * titleBoost));
-		}
-	}
+		double idf = Math.log(totalDocumentCount / (double) items.size());
 
-	private double tfidf(QueryResultList queryResultList, QueryResultItem item, int totalDocumentCount) {
-		return item.getItem().getTermFrequency() * Math.log(totalDocumentCount / (double) queryResultList.getItems().size());
+		for (QueryResultItem item : items) {
+			int boost = 1;
+			if(item.hasTermInTitle()){
+				boost = 10;
+			} else if (item.hasTermInAbstract()) {
+				boost = 5;
+			}
+			item.setScore(Math.log(item.getItem().getTermFrequency() * idf) * weight * boost);
+		}
 	}
 
 	public List<QueryResultItem> getItems() {

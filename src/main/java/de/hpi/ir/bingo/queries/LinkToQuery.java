@@ -37,7 +37,7 @@ public final class LinkToQuery implements QueryPart {
 			return new QueryResultList();
 		}
 		for (Integer cite : cites) {
-			results.addItem(new QueryResultItem(new PostingListItem(cite, 0, 0), 0, "linked"));
+			results.addItem(new QueryResultItem(new PostingListItem(cite, 0, (short)0, (short)0), 0, "linked"));
 		}
 		return results;
 	}

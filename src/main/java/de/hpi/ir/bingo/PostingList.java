@@ -65,7 +65,9 @@ public final class PostingList implements TableMerger.Mergeable<PostingList> {
 				int id = item.getPatentId();
 				output.writeVarInt(id - lastId, true);
 				output.writeVarInt(item.getDocumentWordCount(), true);
-				output.writeVarInt(item.getTitleWordCount(), true);
+				output.writeShort(item.getTitleWordCount());
+				output.writeShort(item.getAbstractWordCount());
+
 				lastId = id;
 
 				IntArrayList positions = item.getPositions();
@@ -87,7 +89,9 @@ public final class PostingList implements TableMerger.Mergeable<PostingList> {
 				int id = input.readVarInt(true) + lastId;
 				lastId = id;
 				int documentWordCount = input.readVarInt(true);
-				int titleWordCount = input.readVarInt(true);
+				short titleWordCount = input.readShort();
+				short abstractWordCount = input.readShort();
+
 				int posSize = input.readVarInt(true);
 				IntArrayList posList = new IntArrayList(posSize);
 				int lastPos = 0;
@@ -96,7 +100,7 @@ public final class PostingList implements TableMerger.Mergeable<PostingList> {
 					lastPos = pos;
 					posList.add(pos);
 				}
-				items.add(new PostingListItem(id, posList, documentWordCount, titleWordCount));
+				items.add(new PostingListItem(id, posList, documentWordCount, titleWordCount, abstractWordCount));
 			}
 			return new PostingList(items);
 		}
@@ -108,7 +112,8 @@ public final class PostingList implements TableMerger.Mergeable<PostingList> {
 			for (PostingListItem item : list.items) {
 				output.writeInt(item.getPatentId());
 				output.writeInt(item.getDocumentWordCount());
-				output.writeInt(item.getTitleWordCount());
+				output.writeShort(item.getTitleWordCount());
+				output.writeShort(item.getAbstractWordCount());
 				IntArrayList positions = item.getPositions();
 				output.writeInt(positions.size());
 				for (int pos : positions) {
@@ -123,14 +128,15 @@ public final class PostingList implements TableMerger.Mergeable<PostingList> {
 			for (int i = 0; i < size; i++) {
 				int id = input.readInt();
 				int documentWordCount = input.readInt();
-				int titleWordCount = input.readInt();
+				short titleWordCount = input.readShort();
+				short abstractWordCount = input.readShort();
 				int posSize = input.readInt();
 				IntArrayList posList = new IntArrayList(posSize);
 				for (int i1 = 0; i1 < posSize; i1++) {
 					int pos = input.readInt();
 					posList.add(pos);
 				}
-				items.add(new PostingListItem(id, posList, documentWordCount, titleWordCount));
+				items.add(new PostingListItem(id, posList, documentWordCount, titleWordCount, abstractWordCount));
 			}
 			return new PostingList(items);
 		}

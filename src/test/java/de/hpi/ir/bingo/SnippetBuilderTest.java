@@ -22,28 +22,28 @@ public class SnippetBuilderTest {
 
 	@Test
 	public void testCreateSnippet() throws Exception {
-		PostingListItem item = new PostingListItem(1, new int[]{9, 10}, 14,10);//bad liebenwerda
+		PostingListItem item = new PostingListItem(1, new int[]{9, 10}, 14,(short)10, (short)0);//bad liebenwerda
 		String snippet = snippetBuilder.createSnippet(patent, item);
 		assertThat(snippet).isEqualTo("bar foo bad liebenwerda");
 	}
 
 	@Test
 	public void testCreateSnippetWithClaim() throws Exception {
-		PostingListItem item = new PostingListItem(1, new int[]{20}, 14,10);//bad liebenwerda
+		PostingListItem item = new PostingListItem(1, new int[]{20}, 14,(short)10, (short)0);//bad liebenwerda
 		String snippet = snippetBuilder.createSnippet(patent, item);
 		assertThat(snippet).isEqualTo("foo bar mobile device");
 	}
 
 	@Test
 	public void testCreateSnippetFirstSentence() throws Exception {
-		PostingListItem item = new PostingListItem(1, new int[]{5, 6, 13}, 14,10); //mobile device
+		PostingListItem item = new PostingListItem(1, new int[]{5, 6, 13}, 14,(short)10, (short)0); //mobile device
 		String snippet = snippetBuilder.createSnippet(patent, item);
 		assertThat(snippet).isEqualTo("foo bar mobile device");
 	}
 
 	@Test
 	public void testCreateSnippetLastSentence() throws Exception {
-		PostingListItem item = new PostingListItem(1, new int[]{11}, 14,10);
+		PostingListItem item = new PostingListItem(1, new int[]{11}, 14,(short)10, (short)0);
 		String snippet = snippetBuilder.createSnippet(patent, item);
 		assertThat(snippet).isEqualTo("hamster foo mobile");
 	}
@@ -51,7 +51,7 @@ public class SnippetBuilderTest {
 
 	@Test
 	public void testCreateEmptySnippet() throws Exception {
-		PostingListItem item = new PostingListItem(1, new int[]{2}, 14,10);
+		PostingListItem item = new PostingListItem(1, new int[]{2}, 14,(short)10, (short)0);
 		String snippet = snippetBuilder.createSnippet(patent, item);
 		assertThat(snippet).isEqualTo("foo bar mobile device");
 	}

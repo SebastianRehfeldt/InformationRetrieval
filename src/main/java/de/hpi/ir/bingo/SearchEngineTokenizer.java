@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
+import java.util.regex.Pattern;
 
 public class SearchEngineTokenizer {
 
@@ -36,7 +37,14 @@ public class SearchEngineTokenizer {
 	}
 
 	public List<Token> tokenizeStopStem(String text) {
-		text = text.replaceAll("(\\w+)-(\\w+)", "$1$2 $1 $2");
+		return tokenizeStopStem(text, true);
+	}
+
+	private static final Pattern PATTERN = Pattern.compile("(\\w+)-(\\w+)");
+
+	public List<Token> tokenizeStopStem(String text, boolean replaceDashes) {
+		if(replaceDashes)
+			text = PATTERN.matcher(text).replaceAll("$1$2 $1 $2"); // changes "add-on" to "addon", "add", "on"
 		return tokenizeStopStem(new StringReader(text));
 	}
 }

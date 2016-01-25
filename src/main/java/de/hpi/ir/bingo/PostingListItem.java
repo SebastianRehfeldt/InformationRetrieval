@@ -10,7 +10,8 @@ public final class PostingListItem {
 	private final int patentId;
 	private final IntArrayList positions;
 	private final int documentWordCount;
-	private final int titleWordCount;
+	private final short titleWordCount;
+	private final short abstractWordCount;
 
 	private double score = 0;
 
@@ -18,19 +19,20 @@ public final class PostingListItem {
 		this(-1, new IntArrayList());
 	}*/
 
-	public PostingListItem(int patentId, int documentWordCount, int titleWordCount) {
-		this(patentId, new IntArrayList(), documentWordCount, titleWordCount);
+	public PostingListItem(int patentId, int documentWordCount, short titleWordCount, short abstractWordCount) {
+		this(patentId, new IntArrayList(), documentWordCount, titleWordCount, abstractWordCount);
 	}
 
-	public PostingListItem(int id, IntArrayList posList, int documentWordCount, int titleWordCount) {
+	public PostingListItem(int id, IntArrayList posList, int documentWordCount, short titleWordCount, short abstractWordCount) {
 		this.patentId = id;
 		this.positions = posList;
 		this.documentWordCount = documentWordCount;
 		this.titleWordCount = titleWordCount;
+		this.abstractWordCount = abstractWordCount;
 	}
 
-	public PostingListItem(int id, int[] positions, int documentWordCount, int titleWordCount) {
-		this(id, IntArrayList.wrap(positions), documentWordCount, titleWordCount);
+	public PostingListItem(int id, int[] positions, int documentWordCount, short titleWordCount, short abstractWordCount) {
+		this(id, IntArrayList.wrap(positions), documentWordCount, titleWordCount, abstractWordCount);
 	}
 
 	public void addPosition(int position) {
@@ -67,7 +69,7 @@ public final class PostingListItem {
 				i2++;
 			}
 		}
-		return new PostingListItem(patentId, result, documentWordCount, titleWordCount);
+		return new PostingListItem(patentId, result, documentWordCount, titleWordCount, abstractWordCount);
 	}
 
 	public PostingListItem merge(PostingListItem item) {
@@ -98,7 +100,7 @@ public final class PostingListItem {
 		while (i2 < elements2Length) {
 			result.add(elements2[i2++]);
 		}
-		return new PostingListItem(patentId, result, documentWordCount, titleWordCount);
+		return new PostingListItem(patentId, result, documentWordCount, titleWordCount, abstractWordCount);
 	}
 
 	@Override
@@ -129,6 +131,10 @@ public final class PostingListItem {
 	}
 
 	public int getTitleWordCount() {
-		return titleWordCount ;
+		return titleWordCount;
+	}
+
+	public int getAbstractWordCount() {
+		return abstractWordCount;
 	}
 }

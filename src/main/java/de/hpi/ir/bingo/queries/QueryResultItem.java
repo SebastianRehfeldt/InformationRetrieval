@@ -70,4 +70,10 @@ public class QueryResultItem {
 		}
 		return item.getPositions().get(0) < item.getTitleWordCount();
 	}
+	public boolean hasTermInAbstract() {
+		if (item.getPositions().isEmpty()){
+			return false;
+		}
+		return item.getPositions().get(0) < item.getTitleWordCount() + item.getAbstractWordCount();
+	}
 }
