@@ -21,8 +21,8 @@ import java.util.List;
  */
 public class SearchEngineTest {
 
-	private static final boolean CREATE_INDEX = false;
-	private static final boolean COMPRESS = false;
+	private static final boolean CREATE_INDEX = true;
+	private static final boolean COMPRESS = true;
 	private static final boolean READ_COMPRESSED = true;
 
 	public static void main(String args[]) throws Exception {

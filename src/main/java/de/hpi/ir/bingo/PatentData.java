@@ -12,7 +12,8 @@ import com.esotericsoftware.kryo.io.Output;
 
 import de.hpi.ir.bingo.index.TableMerger;
 import de.hpi.ir.bingo.index.TfidfToken;
-
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.Serializable;
@@ -27,19 +28,21 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 	private final String title;
 	private final String abstractText;
 	private final String claimText;
+	private final IntList citations;
 	private int abstractOffset;
 	private int claimOffset;
 	private final List<TfidfToken> importantTerms;
 
 	private PatentData() {
-		this(-1, "", "", "");
+		this(-1, "", "", "", null);
 	}
 
-	public PatentData(int patentId, String title, String abstractText, String claimText) {
-		this(patentId, title, abstractText, claimText, -1, -1, Lists.newArrayList());
+	public PatentData(int patentId, String title, String abstractText, String claimText, IntList citations) {
+		this(patentId, title, abstractText, claimText, -1, -1, Lists.newArrayList(), citations);
 	}
 
-	private PatentData(int patentId, String title, String abstractText, String claimText, int abstractOffset, int claimOffset, List<TfidfToken> importantTerms) {
+	private PatentData(int patentId, String title, String abstractText, String claimText, 
+			int abstractOffset, int claimOffset, List<TfidfToken> importantTerms, IntList citations) {
 		this.patentId = patentId;
 		this.title = title;
 		this.abstractText = abstractText;
@@ -47,6 +50,7 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 		this.abstractOffset = abstractOffset;
 		this.claimOffset = claimOffset;
 		this.importantTerms = importantTerms;
+		this.citations = citations;
 	}
 
 	public int getPatentId() {
@@ -115,6 +119,10 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 		this.claimOffset = claimOffset;
 	}
 
+	public IntList getCitations() {
+		return citations;
+	}
+	
 	public static class PatentDataSerializer extends Serializer<PatentData> {
 		public void write(Kryo kryo, Output output, PatentData data) {
 			output.writeInt(data.patentId);
@@ -142,7 +150,7 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 				Double v = input.readDouble();
 				importantTerms.add(new TfidfToken(s, v));
 			}
-			return new PatentData(patentId, title, abstractText, "", abstractOffset, claimOffset, importantTerms);
+			return new PatentData(patentId, title, abstractText, "", abstractOffset, claimOffset, importantTerms, null);
 		}
 	}
 
@@ -153,4 +161,5 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 				.add("title", title)
 				.toString();
 	}
+
 }

@@ -6,6 +6,8 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 import de.hpi.ir.bingo.PatentData;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -27,6 +29,8 @@ public final class TableUtil {
 			kryo.register(TableIndex.class, new TableIndex.TableIndexSerializer());
 			kryo.register(HashMap.class);
 			kryo.register(ArrayList.class);
+			kryo.register(IntArrayList.class);
+			kryo.register(Int2ObjectOpenHashMap.class);
 			return kryo;
 		}
 	};

@@ -11,15 +11,20 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import com.esotericsoftware.kryo.io.Input;
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 
 import de.hpi.ir.bingo.index.Table;
 import de.hpi.ir.bingo.index.TableReader;
+import de.hpi.ir.bingo.index.TableUtil;
 import de.hpi.ir.bingo.index.TableWriter;
 import de.hpi.ir.bingo.queries.Query;
 import de.hpi.ir.bingo.queries.QueryParser;
 import de.hpi.ir.bingo.queries.QueryResultItem;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 
 /**
@@ -37,6 +42,7 @@ public class SearchEngineBingo extends SearchEngine {
 	private Table<PatentData> patentIndex;
 	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
 	private final SnippetBuilder snippetBuilder = new SnippetBuilder();
+	private Int2ObjectMap<IntList> citations = null; 
 
 	public SearchEngineBingo() {
 		super();
@@ -44,9 +50,9 @@ public class SearchEngineBingo extends SearchEngine {
 
 	@Override
 	void index() {
-		//String fileName = "res/testData.xml";
+		String fileName = "res/testData.xml";
 		//String fileName = "compressed_patents/ipg150106.fixed.zip";
-		String fileName = "k:/data/patentData.zip";
+		//String fileName = "k:/data/patentData.zip";
 		new SearchEngineIndexer(teamDirectory).createIndex(fileName, "index", PostingList.NORMAL_SERIALIZER);
 	}
 
@@ -54,6 +60,7 @@ public class SearchEngineBingo extends SearchEngine {
 	boolean loadIndex() {
 		index = Table.open(Paths.get(teamDirectory, "index"), PostingList.class, PostingList.NORMAL_SERIALIZER);
 		patentIndex = Table.open(Paths.get(teamDirectory, "patents"), PatentData.class, null);
+		citations = loadCitation();
 		return true;
 	}
 
@@ -92,7 +99,14 @@ public class SearchEngineBingo extends SearchEngine {
 	boolean loadCompressedIndex() {
 		index = Table.open(Paths.get(teamDirectory, "compressed-index"), PostingList.class, PostingList.COMPRESSING_SERIALIZER);
 		patentIndex = Table.open(Paths.get(teamDirectory, "patents"), PatentData.class, null);
+		citations = loadCitation();
 		return true;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Int2ObjectMap<IntList> loadCitation() {
+		Input input = TableUtil.createInput(Paths.get(teamDirectory, "citations.index"));
+		return TableUtil.getKryo().readObject(input, Int2ObjectOpenHashMap.class);
 	}
 
 	class SearchResult {

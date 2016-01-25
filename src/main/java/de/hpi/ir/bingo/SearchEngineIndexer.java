@@ -6,11 +6,19 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import com.esotericsoftware.kryo.Serializer;
+import com.esotericsoftware.kryo.io.Output;
 
 import de.hpi.ir.bingo.index.TableMerger;
 import de.hpi.ir.bingo.index.TableReader;
 import de.hpi.ir.bingo.index.TableUtil;
 import de.hpi.ir.bingo.index.TableWriter;
+import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectMaps;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
+import it.unimi.dsi.fastutil.ints.IntListIterator;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -29,7 +37,7 @@ public class SearchEngineIndexer {
 	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
 
 	private final String directory;
-
+	
 	public SearchEngineIndexer(String directory) {
 		this.directory = directory;
 	}
@@ -38,11 +46,12 @@ public class SearchEngineIndexer {
 
 		Map<String, PostingList> index = Maps.newHashMap();
 		Map<String, PatentData> patents = Maps.newHashMap();
+		Int2ObjectMap<IntList> citations = new Int2ObjectOpenHashMap<>();
 
 		AtomicInteger i = new AtomicInteger(0);
 		AtomicInteger indexCounter = new AtomicInteger(0);
 		Stopwatch stopwatch = Stopwatch.createStarted();
-
+		
 		long totalMemory = Runtime.getRuntime().totalMemory();
 		if (Runtime.getRuntime().freeMemory() < 1800*1024*1024) {
 			throw new RuntimeException("run at least with -Xms2g");
@@ -52,6 +61,13 @@ public class SearchEngineIndexer {
 			mergeDocIntoMainIndex(index, docIndex);
 			patents.put(Integer.toString(patent.getPatentId()), patent);
 
+			IntListIterator iter = patent.getCitations().iterator();
+			while(iter.hasNext()) {
+				int cited = iter.nextInt();
+				IntList list = citations.computeIfAbsent(cited, (a) -> new IntArrayList());
+				list.add(patent.getPatentId());
+			}
+			
 			if (i.incrementAndGet()%1000 == 0) {
 				long free = Runtime.getRuntime().freeMemory();
 				System.out.println("read: " + i + " available: " + free/1024/1024 + "mb" + " passed: " + stopwatch);
@@ -72,6 +88,10 @@ public class SearchEngineIndexer {
 			throw new RuntimeException(e);
 		}
 
+		Output citationOutput = TableUtil.createOutput(Paths.get(directory, "citations.index"));
+		TableUtil.getKryo().writeObject(citationOutput, citations);
+		citationOutput.close();
+		
 		calculateImportantTerms(indexName, serializer);
 	}
 
