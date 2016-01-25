@@ -87,7 +87,10 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 		List<TfidfToken> tfidfToken = Lists.newArrayList();
 		for (Map.Entry<String, Integer> entry : tf.entrySet()) {
 			String key = entry.getKey();
-			Double value = entry.getValue() * idf.get(key);
+			Double value = entry.getValue() * idf.getOrDefault(key, 0.0);
+			if(value == 0) {
+				System.out.println("tfidf==0: " + key);
+			}
 			tfidfToken.add(new TfidfToken(key, value));
 		}
 		Comparator<TfidfToken> c = Comparator.comparing(TfidfToken::getTfidf);
