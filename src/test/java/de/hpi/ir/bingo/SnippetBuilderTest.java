@@ -3,9 +3,6 @@ package de.hpi.ir.bingo;
 import org.junit.Before;
 import org.junit.Test;
 
-import jdk.nashorn.internal.objects.annotations.Setter;
-
-import static org.junit.Assert.*;
 import static com.google.common.truth.Truth.assertThat;
 
 public class SnippetBuilderTest {
@@ -17,7 +14,7 @@ public class SnippetBuilderTest {
 	@Before
 	public void setup() {
 		patent.setAbstractOffset(3);
-		patent.setClaimOffset(14);
+		patent.setTextOffset(14);
 	}
 
 	@Test

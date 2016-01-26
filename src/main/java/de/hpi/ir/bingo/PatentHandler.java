@@ -1,9 +1,17 @@
 package de.hpi.ir.bingo;
 
-import com.google.common.collect.Lists;
-
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
+import java.io.ByteArrayInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Stack;
+import java.util.function.Consumer;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import org.xml.sax.Attributes;
 import org.xml.sax.InputSource;
@@ -12,19 +20,8 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
-import java.io.ByteArrayInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Stack;
-import java.util.function.Consumer;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 
 public class PatentHandler extends DefaultHandler {
 
@@ -33,8 +30,10 @@ public class PatentHandler extends DefaultHandler {
 	private StringBuilder currentId;
 	private StringBuilder currentAbstract;
 	private StringBuilder currentClaim;
+	private StringBuilder currentDescription;
+
 	private IntList patentCitations;
-	
+
 
 	private String currentApplType;
 	private final Consumer<PatentData> patentComsumer;
@@ -84,6 +83,7 @@ public class PatentHandler extends DefaultHandler {
 		currentTitle = new StringBuilder();
 		currentAbstract = new StringBuilder();
 		currentClaim = new StringBuilder();
+		currentDescription = new StringBuilder();
 		currentCiteDate = new StringBuilder();
 		currentCiteCountry = new StringBuilder();
 		currentCiteId = new StringBuilder();
@@ -101,13 +101,14 @@ public class PatentHandler extends DefaultHandler {
 			currentTitle.setLength(0);
 			currentAbstract.setLength(0);
 			currentClaim.setLength(0);
+			currentDescription.setLength(0);
 			currentApplType = "";
 			patentCitations.clear();
 		}
 		if (name.equals("application-reference")) {
 			currentApplType = atts.getValue("appl-type");
 		}
-		if(name.equals("patcit")){
+		if (name.equals("patcit")) {
 			currentCiteCountry.setLength(0);
 			currentCiteDate.setLength(0);
 			currentCiteId.setLength(0);
@@ -123,12 +124,13 @@ public class PatentHandler extends DefaultHandler {
 				String title = currentTitle.toString().replaceAll("\\s+", " "); // remove duplicate whitespace
 				String abstractText = currentAbstract.toString().replaceAll("\\s+", " ");
 				String claimText = currentClaim.toString().replaceAll("\\s+", " ");
+				String description = currentDescription.toString().replaceAll("\\s+", " ");
 				IntArrayList citations = new IntArrayList(patentCitations);
-				patentComsumer.accept(new PatentData(id, title, abstractText, claimText, citations));
+				patentComsumer.accept(new PatentData(id, title, abstractText, claimText + " " + description, citations));
 			}
 		}
-		if(name.equals("patcit")){
-			if(currentCiteCountry.toString().equals("US") && currentCiteDate.toString().compareTo("20110000")>0){
+		if (name.equals("patcit")) {
+			if (currentCiteCountry.toString().equals("US") && currentCiteDate.toString().compareTo("20110000") > 0) {
 				try {
 					patentCitations.add(Integer.parseInt(currentCiteId.toString()));
 				} catch (NumberFormatException e) {
@@ -144,25 +146,21 @@ public class PatentHandler extends DefaultHandler {
 	public void characters(char ch[], int start, int length) {
 		if (parents.peek().equals("invention-title")) {
 			currentTitle.append(ch, start, length);
-		}
-		else if (parents.peek().equals("doc-number") && parents.get(parents.size() - 3).equals("publication-reference")) {
+		} else if (parents.peek().equals("doc-number") && parents.get(parents.size() - 3).equals("publication-reference")) {
 			currentId.append(ch, start, length);
-		}
-		else if (parents.contains("abstract")) {
+		} else if (parents.contains("abstract")) {
 			currentAbstract.append(ch, start, length);
-		}
-		else if (parents.contains("claim-text")) {
+		} else if (parents.contains("claim-text")) {
 			currentClaim.append(ch, start, length);
-		}
-		else if (parents.size()>=3 && parents.get(parents.size()-3).equals("patcit")){
-			if(parents.peek().equals("country")){
-				currentCiteCountry.append(ch,start,length);
-			}
-			else if(parents.peek().equals("date")){
-				currentCiteDate.append(ch,start,length);
-			}
-			else if(parents.peek().equals("doc-number")){
-				currentCiteId.append(ch,start,length);
+		} else if (parents.contains("description")) {
+			currentDescription.append(ch, start, length);
+		} else if (parents.size() >= 3 && parents.get(parents.size() - 3).equals("patcit")) {
+			if (parents.peek().equals("country")) {
+				currentCiteCountry.append(ch, start, length);
+			} else if (parents.peek().equals("date")) {
+				currentCiteDate.append(ch, start, length);
+			} else if (parents.peek().equals("doc-number")) {
+				currentCiteId.append(ch, start, length);
 			}
 		}
 	}

@@ -21,8 +21,8 @@ import java.util.List;
  */
 public class SearchEngineTest {
 
-	private static final boolean CREATE_INDEX = true;
-	private static final boolean COMPRESS = true;
+	private static final boolean CREATE_INDEX = false;
+	private static final boolean COMPRESS = false;
 	private static final boolean READ_COMPRESSED = true;
 
 	public static void main(String args[]) throws Exception {
@@ -52,13 +52,14 @@ public class SearchEngineTest {
 
 		CachedWebfile webFile = new CachedWebfile();
 
+		//System.in.read();
 
 		Writer resultWriter = Files.newBufferedWriter(Paths.get("queryresults.txt"), Charsets.UTF_8);
 		//List<String> queries = ImmutableList.of("add-on module", "digital signature", "data processing", "\"a scanning\"");
 		//List<String> queries = ImmutableList.of("\"graph editor\"", "\"social trend\"", "fossil hydrocarbons", "physiological AND saline", "tires NOT pressure", "linkTo:8201244");
 		List<String> queries = ImmutableList.of("LinkTo:07920906", "LinkTo:07904949", "LinkTo:08078787",
 												"LinkTo:07865308 AND LinkTo:07925708", "LinkTo:07947864 AND LinkTo:07947142",
-												"review guidelines", "on-chip OR OCV");
+												"review guidelines", "on-chip OR OCV", "on-chip ocv");
 		int topK = 15;
 
 		for (int i = 0; i < 1; i++)
@@ -82,12 +83,12 @@ public class SearchEngineTest {
 			} else {
 				for (SearchEngineBingo.SearchResult result : results) {
 					if (result.snippet.equals("linked")) {
-						System.out.println(result.patentId + " " + result.title);
+						//System.out.println(result.patentId + " " + result.title);
 						resultWriter.write(result.patentId + " " + result.title + "\n");
 					} else {
 						double gain = myEngine.computeNdcg(goldStandard, ImmutableList.of("" + result.patentId), 1);
-						System.out.println(result + "\nGain:" + gain + "\n");
-						resultWriter.write(result + "\nGain:" + gain + "\n\n");
+						//System.out.println(result + "\nScore: " + result.score + " Gain:" + gain + "\n");
+						resultWriter.write(result + "\n\n");
 					}
 				}
 			}

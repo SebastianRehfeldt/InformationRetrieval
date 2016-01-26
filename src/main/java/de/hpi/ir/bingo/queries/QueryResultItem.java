@@ -76,4 +76,8 @@ public class QueryResultItem {
 		}
 		return item.getPositions().get(0) < item.getTitleWordCount() + item.getAbstractWordCount();
 	}
+
+	public QueryResultItem withScore(double score) {
+		return new QueryResultItem(item, this.score, snippet);
+	}
 }

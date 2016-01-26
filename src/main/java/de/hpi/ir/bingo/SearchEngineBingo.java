@@ -113,11 +113,13 @@ public class SearchEngineBingo extends SearchEngine {
 		int patentId;
 		String title;
 		String snippet;
+		double score;
 
-		public SearchResult(int patentId, String title, String snippet) {
+		public SearchResult(int patentId, String title, String snippet, double score) {
 			this.patentId = patentId;
 			this.title = title;
 			this.snippet = snippet;
+			this.score = score;
 		}
 
 		@Override
@@ -160,7 +162,7 @@ public class SearchEngineBingo extends SearchEngine {
 			if (snippet == null) { // snippets might already be created if prf>0
 				snippet = snippetBuilder.createSnippet(patentData, resultItem.getItem());
 			}
-			searchResult.add(new SearchResult(patentData.getPatentId(), title, snippet));
+			searchResult.add(new SearchResult(patentData.getPatentId(), title, snippet, resultItem.getScore()));
 		}
 		return searchResult;
 	}

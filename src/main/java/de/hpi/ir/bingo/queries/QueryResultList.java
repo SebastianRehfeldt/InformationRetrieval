@@ -21,7 +21,9 @@ public class QueryResultList {
 	// number of QueryResultLists that were combined to create this one
 	private final int combinations;
 
-	/** create a single result **/
+	/**
+	 * create a single result
+	 **/
 	public QueryResultList(PostingList postingList) {
 		this(Lists.newArrayListWithCapacity(postingList.getItems().size()), 1);
 		for (PostingListItem item : postingList.getItems()) {
@@ -59,7 +61,7 @@ public class QueryResultList {
 				i1++;
 			} else if (p1.getPatentId() == p2.getPatentId()) {
 				PostingListItem and = p1.getItem().merge(p2.getItem());
-				double score = Math.max(p1.getScore(), p2.getScore());
+				double score = p1.getScore() + p2.getScore();
 				String snippet = p1.getSnippet() != null ? p1.getSnippet() : p2.getSnippet();
 				result.addItem(new QueryResultItem(and, score, snippet));
 				i1++;
@@ -72,35 +74,7 @@ public class QueryResultList {
 	}
 
 	public QueryResultList or(QueryResultList other) {
-		Preconditions.checkNotNull(other);
-		List<QueryResultItem> items2 = other.items;
-		int i1 = 0, i2 = 0;
-		QueryResultList result = new QueryResultList(combinations + other.combinations);
-		while (i1 < items.size() && i2 < items2.size()) {
-			QueryResultItem p1 = items.get(i1);
-			QueryResultItem p2 = items2.get(i2);
-			if (p1.getPatentId() < p2.getPatentId()) {
-				result.addItem(p1);
-				i1++;
-			} else if (p1.getPatentId() == p2.getPatentId()) {
-				PostingListItem or = p1.getItem().merge(p2.getItem());
-				double score = Math.log(Math.exp(p1.getScore()) + Math.exp(p2.getScore()));
-				String snippet = p1.getSnippet() != null ? p1.getSnippet() : p2.getSnippet();
-				result.addItem(new QueryResultItem(or, score, snippet));
-				i1++;
-				i2++;
-			} else {
-				result.addItem(p2);
-				i2++;
-			}
-		}
-		while (i1 < items.size()) {
-			result.addItem(items.get(i1++));
-		}
-		while (i2 < items2.size()) {
-			result.addItem(items2.get(i2++));
-		}
-		return result;
+		return combine(other); // use the same ranking model
 	}
 
 	public QueryResultList not(QueryResultList other) {
@@ -136,7 +110,7 @@ public class QueryResultList {
 			QueryResultItem p1 = items.get(i1);
 			QueryResultItem p2 = items2.get(i2);
 			if (p1.getPatentId() < p2.getPatentId()) {
-				double score = p1.getScore() + MISSING_SCORE*other.combinations;
+				double score = p1.getScore() + MISSING_SCORE * other.combinations;
 				result.addItem(new QueryResultItem(p1.getItem(), score, p1.getSnippet()));
 				i1++;
 			} else if (p1.getPatentId() == p2.getPatentId()) {
@@ -147,18 +121,18 @@ public class QueryResultList {
 				i1++;
 				i2++;
 			} else {
-				double score = p2.getScore() + MISSING_SCORE*combinations;
+				double score = p2.getScore() + MISSING_SCORE * combinations;
 				result.addItem(new QueryResultItem(p2.getItem(), score, p2.getSnippet()));
 				i2++;
 			}
 		}
 		while (i1 < items.size()) {
 			QueryResultItem p1 = items.get(i1++);
-			result.addItem(new QueryResultItem(p1.getItem(),p1.getScore() + MISSING_SCORE*other.combinations, p1.getSnippet()));
+			result.addItem(new QueryResultItem(p1.getItem(), p1.getScore() + MISSING_SCORE * other.combinations, p1.getSnippet()));
 		}
 		while (i2 < items2.size()) {
 			QueryResultItem p2 = items2.get(i2++);
-			result.addItem(new QueryResultItem(p2.getItem(), p2.getScore() + MISSING_SCORE*combinations, p2.getSnippet()));
+			result.addItem(new QueryResultItem(p2.getItem(), p2.getScore() + MISSING_SCORE * combinations, p2.getSnippet()));
 		}
 		return result;
 	}
@@ -193,10 +167,10 @@ public class QueryResultList {
 
 		for (QueryResultItem item : items) {
 			int boost = 1;
-			if(item.hasTermInTitle()){
-				boost = 10;
+			if (item.hasTermInTitle()) {
+				boost = 3;
 			} else if (item.hasTermInAbstract()) {
-				boost = 5;
+				boost = 2;
 			}
 			item.setScore(Math.log(item.getItem().getTermFrequency() * idf) * weight * boost);
 		}

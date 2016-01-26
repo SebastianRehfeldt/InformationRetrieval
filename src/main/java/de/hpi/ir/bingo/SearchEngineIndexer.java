@@ -62,8 +62,8 @@ public class SearchEngineIndexer {
 			throw new RuntimeException("run at least with -Xms2g");
 		}
 
-		int THREADS = 4;
-		int QUEUE_SIZE = 10000;
+		int THREADS = 8;
+		int QUEUE_SIZE = 3000;
 		BlockingQueue<Runnable> queue = new LinkedBlockingDeque<>(QUEUE_SIZE);
 		ExecutorService processing = new ThreadPoolExecutor(THREADS, THREADS, 0, TimeUnit.MILLISECONDS, queue);
 		BlockingQueue<Runnable> finalizerQueue = new LinkedBlockingDeque<>(QUEUE_SIZE);
@@ -83,6 +83,7 @@ public class SearchEngineIndexer {
 					throw new RuntimeException(e);
 				}
 				mergeDocIntoMainIndex(index, docIndex);
+				patent.removeAdditionalData();
 				patents.put(Integer.toString(patent.getPatentId()), patent);
 
 				IntListIterator iter = patent.getCitations().iterator();
@@ -201,15 +202,15 @@ public class SearchEngineIndexer {
 		Map<String, PostingListItem> docIndex = new HashMap<>();
 		List<Token> titleTokens = tokenizer.tokenizeStopStem(patent.getTitle());
 		List<Token> abstractTokens = tokenizer.tokenizeStopStem(patent.getAbstractText());
-		List<Token> claimTokens = tokenizer.tokenizeStopStem(patent.getClaimText());
+		List<Token> textTokens = tokenizer.tokenizeStopStem(patent.getText());
 		int totalSize = titleTokens.size() + abstractTokens.size();
 
 		int pos = 0;
 		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), abstractTokens.size(), titleTokens, docIndex);
 		patent.setAbstractOffset(pos);
 		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), abstractTokens.size(), abstractTokens, docIndex);
-		patent.setClaimOffset(pos);
-		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), abstractTokens.size(), claimTokens, docIndex);
+		patent.setTextOffset(pos);
+		pos += addToIndex(patent.getPatentId(), pos, totalSize, titleTokens.size(), abstractTokens.size(), textTokens, docIndex);
 		return docIndex;
 	}
 

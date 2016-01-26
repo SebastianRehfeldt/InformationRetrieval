@@ -23,31 +23,34 @@ import java.util.stream.Collectors;
 
 public class PatentData implements Serializable, TableMerger.Mergeable<PatentData> {
 	private static final long MAXIMPORTANTTERMS = 7;
+
 	private final int patentId;
 	private final String title;
 	private final String abstractText;
-	private final String claimText;
-	private final IntList citations;
 	private int abstractOffset;
-	private int claimOffset;
+	private int textOffset;
 	private final List<TfidfToken> importantTerms;
+
+	private String text;
+	private IntList citations;
+
 
 	private PatentData() {
 		this(-1, "", "", "", null);
 	}
 
-	public PatentData(int patentId, String title, String abstractText, String claimText, IntList citations) {
-		this(patentId, title, abstractText, claimText, -1, -1, Lists.newArrayList(), citations);
+	public PatentData(int patentId, String title, String abstractText, String text, IntList citations) {
+		this(patentId, title, abstractText, text, -1, -1, Lists.newArrayList(), citations);
 	}
 
-	private PatentData(int patentId, String title, String abstractText, String claimText, 
+	private PatentData(int patentId, String title, String abstractText, String text,
 			int abstractOffset, int claimOffset, List<TfidfToken> importantTerms, IntList citations) {
 		this.patentId = patentId;
 		this.title = title;
 		this.abstractText = abstractText;
-		this.claimText = claimText;
+		this.text = text;
 		this.abstractOffset = abstractOffset;
-		this.claimOffset = claimOffset;
+		this.textOffset = claimOffset;
 		this.importantTerms = importantTerms;
 		this.citations = citations;
 	}
@@ -66,6 +69,11 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 
 	public List<TfidfToken> getImportantTerms(){
 		return importantTerms;
+	}
+
+	public void removeAdditionalData() {
+		this.text = null;
+		this.citations = null;
 	}
 
 	private static class Tokenizer {
@@ -112,16 +120,16 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 		throw new NotImplementedException(); // shouldnt be neccessary
 	}
 
-	public String getClaimText() {
-		return claimText;
+	public String getText() {
+		return text;
 	}
 
 	public int getClaimOffset() {
-		return claimOffset;
+		return textOffset;
 	}
 
-	public void setClaimOffset(int claimOffset) {
-		this.claimOffset = claimOffset;
+	public void setTextOffset(int claimOffset) {
+		this.textOffset = claimOffset;
 	}
 
 	public IntList getCitations() {
@@ -134,7 +142,7 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 			output.writeString(data.title);
 			output.writeString(data.abstractText);
 			output.writeInt(data.abstractOffset);
-			output.writeInt(data.claimOffset);
+			output.writeInt(data.textOffset);
 			output.writeInt(data.importantTerms.size());
 			for (TfidfToken token : data.importantTerms) {
 				output.writeString(token.getText());
@@ -147,7 +155,7 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 			String title = input.readString();
 			String abstractText = input.readString();
 			int abstractOffset = input.readInt();
-			int claimOffset = input.readInt();
+			int textOffset = input.readInt();
 			int size = input.readInt();
 			List<TfidfToken> importantTerms = Lists.newArrayList();
 			for (int i = 0; i < size; i++) {
@@ -155,7 +163,7 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 				Double v = input.readDouble();
 				importantTerms.add(new TfidfToken(s, v));
 			}
-			return new PatentData(patentId, title, abstractText, "", abstractOffset, claimOffset, importantTerms, null);
+			return new PatentData(patentId, title, abstractText, "", abstractOffset, textOffset, importantTerms, null);
 		}
 	}
 

@@ -17,7 +17,7 @@ import java.util.Map;
 public class CachedWebfile {
 
 	private Map<String, ArrayList<String>> cache;
-	private Path cacheFile = Paths.get("webfilecache2.bin");
+	private Path cacheFile = Paths.get("webfilecache.bin");
 
 	public List <String> getGoogleRanking(String query) {
 		ArrayList<String> result = getCached(query);
