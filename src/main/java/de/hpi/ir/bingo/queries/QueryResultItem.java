@@ -1,5 +1,6 @@
 package de.hpi.ir.bingo.queries;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Verify;
 
@@ -35,7 +36,7 @@ public class QueryResultItem {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 				.addValue(item)
 				.add("score", score)
 				.toString();

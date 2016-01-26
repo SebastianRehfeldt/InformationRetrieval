@@ -3,6 +3,7 @@ package de.hpi.ir.bingo.queries;
 import java.util.Comparator;
 import java.util.List;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Verify;
@@ -166,7 +167,7 @@ public class QueryResultList {
 		double idf = Math.log(totalDocumentCount / (double) items.size());
 
 		for (QueryResultItem item : items) {
-			int boost = 1;
+			double boost = 1;
 			if (item.hasTermInTitle()) {
 				boost = 3;
 			} else if (item.hasTermInAbstract()) {
@@ -182,7 +183,7 @@ public class QueryResultList {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 				.add("items", items)
 				.add("combinations", combinations)
 				.toString();

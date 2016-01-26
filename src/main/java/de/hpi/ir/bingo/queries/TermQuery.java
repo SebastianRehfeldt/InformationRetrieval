@@ -1,37 +1,49 @@
 package de.hpi.ir.bingo.queries;
 
-import com.google.common.base.Objects;
+import java.util.Objects;
+
+import com.google.common.base.MoreObjects;
 
 import de.hpi.ir.bingo.PostingList;
 import de.hpi.ir.bingo.index.Table;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 public final class TermQuery implements QueryPart {
 	private final String term;
+	private final QueryOperator queryOperator;
 
-	public TermQuery(String term) {
+	TermQuery(String term) {
+		this(term, QueryOperator.DEFAULT);
+	}
+
+	public TermQuery(String term, QueryOperator queryOperator) {
 		this.term = term;
+		this.queryOperator = queryOperator;
+	}
+
+	@Override
+	public QueryOperator getOperator() {
+		return queryOperator;
 	}
 
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof TermQuery)) return false;
-		TermQuery termQuery = (TermQuery) o;
-		return Objects.equal(term, termQuery.term);
+		TermQuery that = (TermQuery) o;
+		return Objects.equals(term, that.term) && Objects.equals(queryOperator, that.queryOperator);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(term);
+		return Objects.hash(term, queryOperator);
 	}
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
-				.addValue(term)
+		return MoreObjects.toStringHelper(this)
+				.addValue((queryOperator != QueryOperator.DEFAULT ? queryOperator + " " : "") + term)
 				.toString();
 	}
 

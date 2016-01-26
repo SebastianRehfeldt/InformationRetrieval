@@ -64,10 +64,10 @@ public class QueryResultListTest {
 		QueryResultList result = postingList1.or(postingList2);
 
 		QueryResultList expectedPostingList = new QueryResultList(2);
-		expectedPostingList.addItem(new QueryResultItem(new PostingListItem(1, new int[]{3, 4, 5, 7},10,(short)10, (short)0),Math.log(2), null));
-		expectedPostingList.addItem(new QueryResultItem(new PostingListItem(2, new int[]{3, 4, 5},10,(short)10, (short)0),Math.log(2), null));
-		expectedPostingList.addItem(new QueryResultItem(new PostingListItem(3, new int[]{3},10,(short)10, (short)0),0, null));
-		expectedPostingList.addItem(new QueryResultItem(new PostingListItem(4, new int[]{3, 4, 5},10,(short)10, (short)0),0, null));
+		expectedPostingList.addItem(new QueryResultItem(new PostingListItem(1, new int[]{3, 4, 5, 7},10,(short)10, (short)0),0, null));
+		expectedPostingList.addItem(new QueryResultItem(new PostingListItem(2, new int[]{3, 4, 5},10,(short)10, (short)0),0, null));
+		expectedPostingList.addItem(new QueryResultItem(new PostingListItem(3, new int[]{3},10,(short)10, (short)0),-11.512925464970229, null));
+		expectedPostingList.addItem(new QueryResultItem(new PostingListItem(4, new int[]{3, 4, 5},10,(short)10, (short)0),-11.512925464970229, null));
 
 		assertThat(result).isEqualTo(expectedPostingList);
 	}

@@ -1,21 +1,27 @@
 package de.hpi.ir.bingo.queries;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import de.hpi.ir.bingo.PostingList;
 import de.hpi.ir.bingo.index.Table;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 public final class PhraseQuery implements QueryPart {
 	private final List<QueryPart> parts;
+	private final QueryOperator queryOperator;
 
-	public PhraseQuery(List<QueryPart> parts) {
+	public PhraseQuery(List<QueryPart> parts, QueryOperator queryOperator) {
 		this.parts = parts;
+		this.queryOperator = queryOperator;
+	}
+
+	@Override
+	public QueryOperator getOperator() {
+		return queryOperator;
 	}
 
 	@Override
@@ -34,18 +40,18 @@ public final class PhraseQuery implements QueryPart {
 		if (this == o) return true;
 		if (!(o instanceof PhraseQuery)) return false;
 		PhraseQuery that = (PhraseQuery) o;
-		return Objects.equal(parts, that.parts);
+		return Objects.equals(parts, that.parts) && Objects.equals(queryOperator, that.queryOperator);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(parts);
+		return Objects.hash(parts, queryOperator);
 	}
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
-				.addValue(parts)
+		return MoreObjects.toStringHelper(this)
+				.addValue((queryOperator != QueryOperator.DEFAULT ? queryOperator + " " : " ") + parts)
 				.toString();
 	}
 }

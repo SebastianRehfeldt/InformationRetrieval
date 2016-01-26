@@ -1,5 +1,6 @@
 package de.hpi.ir.bingo.index;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 public class TfidfToken {
@@ -35,7 +36,7 @@ public class TfidfToken {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 				.add("text", text)
 				.add("tfidf", tfidf)
 				.toString();

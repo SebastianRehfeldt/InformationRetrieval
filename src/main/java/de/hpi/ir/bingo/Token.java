@@ -1,5 +1,6 @@
 package de.hpi.ir.bingo;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
 public final class Token {
@@ -15,7 +16,7 @@ public final class Token {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 				.add("text", text)
 				.add("begin", begin)
 				.add("end", end)

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -50,7 +51,7 @@ public final class NormalQuery implements Query {
 			List<String> topToken = getPrfToken(result, patents);
 			System.out.println("extend query with: " + topToken);
 			for (String stringDoubleEntry : topToken) {
-				QueryResultList resultList2 = new TermQuery(stringDoubleEntry).execute(index, citations);
+				QueryResultList resultList2 = new TermQuery(stringDoubleEntry, null).execute(index, citations);
 				resultList2.calculateTfidfScores(0.1, patents.getSize());
 				resultList = resultList.combine(resultList2);
 			}
@@ -103,7 +104,7 @@ public final class NormalQuery implements Query {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 				.addValue(parts)
 				.add("prf", prf)
 				.toString();

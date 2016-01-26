@@ -10,8 +10,6 @@ import java.util.stream.Collectors;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
-import com.sun.xml.internal.messaging.saaj.packaging.mime.util.QPDecoderStream;
-
 import de.hpi.ir.bingo.SearchEngineTokenizer;
 import de.hpi.ir.bingo.Token;
 
@@ -27,12 +25,14 @@ public class QueryParser {
 		Matcher m = queryPartPattern.matcher(query);
 		List<QueryPart> queryParts = Lists.newArrayList();
 
-		QueryOperators queryOperator = null;
+		boolean isBoolean = false;
+		QueryOperator queryOperator = QueryOperator.DEFAULT;
 		int prf = 0;
 		while (m.find()) {
 			String operator = m.group(1);
 			if (operator != null) {
-				queryOperator = QueryOperators.valueOf(operator);
+				isBoolean = true;
+				queryOperator = QueryOperator.valueOf(operator);
 			}
 			String prfString = m.group(2);
 			if (prfString != null) {
@@ -41,40 +41,44 @@ public class QueryParser {
 			String linkToId = m.group(3);
 			if (linkToId != null) {
 				int linkTo = Integer.parseInt(linkToId);
-				queryParts.add(new LinkToQuery(linkTo));
+				queryParts.add(new LinkToQuery(linkTo, queryOperator));
 			}
 			String phrase = m.group(4);
 			if (phrase != null) {
-				List<QueryPart> phraseParts = parseParts(phrase);
-				queryParts.add(new PhraseQuery(phraseParts));
+				List<QueryPart> phraseParts = parsePhraseParts(phrase);
+				queryParts.add(new PhraseQuery(phraseParts, queryOperator));
 			}
 			String term = m.group(5);
 			if (term != null) {
-				queryParts.addAll(parsePart(term));
+				queryParts.addAll(parsePart(term, queryOperator));
+			}
+
+			if(operator == null) {
+				queryOperator = QueryOperator.DEFAULT;
 			}
 		}
 
-		if (queryOperator == null) {
-			return new NormalQuery(queryParts, prf);
+		if (isBoolean) {
+			return new BooleanQuery(queryParts);
 		} else {
-			return new BooleanQuery(queryParts, queryOperator);
+			return new NormalQuery(queryParts, prf);
 		}
 	}
 
-	private static List<QueryPart> parsePart(String term) {
+	private static List<QueryPart> parsePart(String term, QueryOperator queryOperator) {
 		if (term.endsWith("*")) {
-			return ImmutableList.of(new PrefixQuery(term.substring(0, term.length()-1)));
+			return ImmutableList.of(new PrefixQuery(term.substring(0, term.length()-1), queryOperator));
 		} else {
 			List<QueryPart> result = Lists.newArrayList();
 			for (Token token : tokenizer.tokenizeStopStem(term)) {
-				result.add(new TermQuery(token.text));
+				result.add(new TermQuery(token.text, queryOperator));
 			}
 			return result;
 		}
 	}
 
-	private static List<QueryPart> parseParts(String phrase) {
-		List<QueryPart> parts = Arrays.stream(phrase.split(" ")).map(QueryParser::parsePart).flatMap((Collection::stream)).collect(Collectors.toList());
+	private static List<QueryPart> parsePhraseParts(String phrase) {
+		List<QueryPart> parts = Arrays.stream(phrase.split(" ")).map(term -> parsePart(term, QueryOperator.DEFAULT)).flatMap((Collection::stream)).collect(Collectors.toList());
 		return parts;
 	}
 

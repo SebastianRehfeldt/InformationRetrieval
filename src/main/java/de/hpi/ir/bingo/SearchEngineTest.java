@@ -87,7 +87,7 @@ public class SearchEngineTest {
 						resultWriter.write(result.patentId + " " + result.title + "\n");
 					} else {
 						double gain = myEngine.computeNdcg(goldStandard, ImmutableList.of("" + result.patentId), 1);
-						//System.out.println(result + "\nScore: " + result.score + " Gain:" + gain + "\n");
+						System.out.println(result + "\nScore: " + result.score + " Gain:" + gain + "\n");
 						resultWriter.write(result + "\n\n");
 					}
 				}

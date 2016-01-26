@@ -3,30 +3,24 @@ package de.hpi.ir.bingo.queries;
 import java.util.Collections;
 import java.util.List;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Lists;
 
 import de.hpi.ir.bingo.PatentData;
 import de.hpi.ir.bingo.PostingList;
-import de.hpi.ir.bingo.PostingListItem;
 import de.hpi.ir.bingo.index.Table;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-enum QueryOperators {
-	AND, OR, NOT
-}
-
 public final class BooleanQuery implements Query {
 
 
 	private final List<QueryPart> parts;
-	private final QueryOperators queryOperator;
 
-	public BooleanQuery(List<QueryPart> parts, QueryOperators queryOperator) {
+	public BooleanQuery(List<QueryPart> parts) {
 		this.parts = parts;
-		this.queryOperator = queryOperator;
 	}
 
 	@Override
@@ -34,20 +28,18 @@ public final class BooleanQuery implements Query {
 		if (this == o) return true;
 		if (!(o instanceof BooleanQuery)) return false;
 		BooleanQuery that = (BooleanQuery) o;
-		return Objects.equal(parts, that.parts) &&
-				queryOperator == that.queryOperator;
+		return Objects.equal(parts, that.parts);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(parts, queryOperator);
+		return Objects.hashCode(parts);
 	}
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 				.addValue(parts)
-				.add("queryOperator", queryOperator)
 				.toString();
 	}
 
@@ -59,10 +51,11 @@ public final class BooleanQuery implements Query {
 			QueryResultList resultList = parts.get(0).execute(index, citations);
 			resultList.calculateTfidfScores(1.0, patents.getSize());
 			for (int i = 1; i < parts.size(); i++) {
-				QueryResultList resultList2 = parts.get(i).execute(index, citations);
+				QueryPart queryPart = parts.get(i);
+				QueryResultList resultList2 = queryPart.execute(index, citations);
 				resultList2.calculateTfidfScores(1.0, patents.getSize());
 
-				switch (queryOperator) {
+				switch (queryPart.getOperator()) {
 					case AND:
 						resultList = resultList.and(resultList2);
 						break;
@@ -72,6 +65,8 @@ public final class BooleanQuery implements Query {
 					case NOT:
 						resultList = resultList.not(resultList2);
 						break;
+					default:
+						resultList = resultList.combine(resultList2);
 				}
 			}
 			List<QueryResultItem> result = Lists.newArrayList(resultList.getItems());

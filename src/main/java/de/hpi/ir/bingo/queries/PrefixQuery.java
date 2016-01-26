@@ -1,24 +1,24 @@
 package de.hpi.ir.bingo.queries;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-import com.google.common.base.Objects;
+import com.google.common.base.MoreObjects;
 
 import de.hpi.ir.bingo.PostingList;
 import de.hpi.ir.bingo.index.Table;
-
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntList;
 
 public final class PrefixQuery implements QueryPart {
 	private final String prefix;
+	private final QueryOperator queryOperator;
 
-	public PrefixQuery(String prefix) {
+	public PrefixQuery(String prefix, QueryOperator queryOperator) {
 		this.prefix = prefix;
+		this.queryOperator = queryOperator;
 	}
-
 
 	@Override
 	public QueryResultList execute(Table<PostingList> index, Int2ObjectMap<IntList> citations) {
@@ -34,25 +34,29 @@ public final class PrefixQuery implements QueryPart {
 		return resultList;
 	}
 
+	public QueryOperator getOperator() {
+		return queryOperator;
+	}
+
 	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof PrefixQuery)) return false;
 		PrefixQuery that = (PrefixQuery) o;
-		return Objects.equal(prefix, that.prefix);
+		return Objects.equals(prefix, that.prefix) && Objects.equals(queryOperator, that.queryOperator);
 	}
 
 	@Override
 	public int hashCode() {
-		return Objects.hashCode(prefix);
+		return Objects.hash(prefix, queryOperator);
 	}
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
+				.addValue(queryOperator != QueryOperator.DEFAULT ? queryOperator + " " : "")
 				.add("prefix", prefix)
 				.toString();
 	}
-
 
 }
