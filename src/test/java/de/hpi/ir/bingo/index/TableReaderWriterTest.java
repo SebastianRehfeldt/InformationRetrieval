@@ -1,22 +1,20 @@
 package de.hpi.ir.bingo.index;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import java.nio.file.Path;
+import java.util.Map;
+
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+
 import com.google.common.base.VerifyException;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 
 import de.hpi.ir.bingo.PostingList;
 import de.hpi.ir.bingo.PostingListItem;
-
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-
-import java.nio.file.Path;
-import java.util.Map;
-
-import javafx.geometry.Pos;
-
-import static com.google.common.truth.Truth.assertThat;
 
 public final class TableReaderWriterTest {
 
@@ -46,7 +44,7 @@ public final class TableReaderWriterTest {
 
 		TableWriter<PostingList> writer = new TableWriter<>(tmpFile, false, 1, PostingList.class, PostingList.NORMAL_SERIALIZER);
 		PostingList list = new PostingList();
-		list.addItem(new PostingListItem(5, 10,(short)10, (short)0));
+		list.addItem(new PostingListItem(5, 10, (short) 10, (short) 0));
 		writer.put("k1", list);
 		writer.close();
 

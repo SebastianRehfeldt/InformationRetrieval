@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -20,6 +22,9 @@ import java.util.concurrent.LinkedBlockingDeque;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import com.esotericsoftware.kryo.Serializer;
 import com.esotericsoftware.kryo.io.Output;
@@ -47,6 +52,17 @@ public class SearchEngineIndexer {
 		this.directory = directory;
 	}
 
+	private static Runnable verbose(Runnable f) {
+		return () -> {
+			try {
+				f.run();
+			} catch (Exception e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+		};
+	};
+
 	public void createIndex(String fileName, Serializer<PostingList> serializer) {
 
 		Map<String, PostingList> index = Maps.newHashMap();
@@ -58,7 +74,7 @@ public class SearchEngineIndexer {
 		Stopwatch stopwatch = Stopwatch.createStarted();
 
 		long totalMemory = Runtime.getRuntime().totalMemory();
-		if (Runtime.getRuntime().freeMemory() < 1800 * 1024 * 1024) {
+		if (totalMemory < 1800 * 1024 * 1024) {
 			throw new RuntimeException("run at least with -Xms2g");
 		}
 
@@ -75,7 +91,7 @@ public class SearchEngineIndexer {
 				return buildIndexForDocument(patent);
 			});
 			waitForQueue(finalizerQueue);
-			finalizer.submit(() -> {
+			finalizer.submit(verbose(() -> {
 				Map<String, PostingListItem> docIndex;
 				try {
 					docIndex = future.get();
@@ -83,7 +99,6 @@ public class SearchEngineIndexer {
 					throw new RuntimeException(e);
 				}
 				mergeDocIntoMainIndex(index, docIndex);
-				patent.removeAdditionalData();
 				patents.put(Integer.toString(patent.getPatentId()), patent);
 
 				IntListIterator iter = patent.getCitations().iterator();
@@ -92,6 +107,7 @@ public class SearchEngineIndexer {
 					IntList list = citations.computeIfAbsent(cited, (a) -> new IntArrayList());
 					list.add(patent.getPatentId());
 				}
+				patent.removeAdditionalData();
 
 				if (i.incrementAndGet() % 1000 == 0) {
 					long free = Runtime.getRuntime().freeMemory();
@@ -101,13 +117,20 @@ public class SearchEngineIndexer {
 						System.out.println("index written to disk!!");
 					}
 				}
-			});
+			}));
 		});
 
 		processing.shutdown();
 		finalizer.shutdown();
 
-		writeToDisk(indexCounter.incrementAndGet(), true, serializer, index, patents);
+		try {
+			processing.awaitTermination(1, TimeUnit.DAYS);
+			finalizer.awaitTermination(1, TimeUnit.DAYS);
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		}
+
+		writeToDisk(indexCounter.incrementAndGet(), false, serializer, index, patents);
 
 		System.out.println("merging: " + stopwatch);
 		try {
@@ -137,35 +160,15 @@ public class SearchEngineIndexer {
 	}
 
 	private <T extends TableMerger.Mergeable<T>> void mergeIndices(String indexName, int parts, Class<T> clazz, Serializer<T> serializer) throws IOException {
-		Queue<Path> files = new ArrayDeque<>();
+		List<Path> files = Lists.newArrayList();
 		for (int j = 1; j <= parts; j++) {
 			files.add(Paths.get(directory, indexName + j));
 		}
-		if (files.size() == 1) {
-			Path file = files.poll();
-			Files.move(file, Paths.get(directory, indexName), StandardCopyOption.REPLACE_EXISTING);
-			Files.move(Paths.get(directory, file.getFileName() + ".index"), Paths.get(directory, indexName + ".index"), StandardCopyOption.REPLACE_EXISTING);
-		}
+		Path dest = Paths.get(directory, indexName);
+		TableMerger.merge(dest, files, clazz, serializer);
 
-		Queue<Path> nextGen = new ArrayDeque<>();
-		while (files.size() > 1) {
-			Path a = files.poll();
-			Path b = files.poll();
-			parts++;
-			boolean lastMerge = files.size() == 0 && nextGen.size() == 0;
-			Path dest = Paths.get(directory, indexName + (lastMerge ? "" : parts));
-			System.out.println("merge: " + a + " + " + b + " to " + dest);
-			TableMerger.merge(dest, a, b, lastMerge, clazz, serializer);
-			Files.delete(a);
-			Files.delete(b);
-			nextGen.add(dest);
-			if (files.size() == 1) {
-				nextGen.add(files.poll());
-			}
-			if (files.size() == 0) {
-				files.addAll(nextGen);
-				nextGen.clear();
-			}
+		for (Path file : files) {
+			Files.delete(file);
 		}
 	}
 

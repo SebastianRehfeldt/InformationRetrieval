@@ -56,6 +56,10 @@ public final class PostingList implements TableMerger.Mergeable<PostingList> {
 		return new PostingList(concat);
 	}
 
+	@Override
+	public int compareTo(PostingList o) {
+		return Integer.compare(items.get(0).getPatentId(), o.items.get(0).getPatentId());
+	}
 
 	private static class PostingListCompressingSerializer extends Serializer<PostingList> {
 		public void write(Kryo kryo, Output output, PostingList list) {

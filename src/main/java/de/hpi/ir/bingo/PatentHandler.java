@@ -20,6 +20,8 @@ import org.xml.sax.XMLReader;
 import org.xml.sax.helpers.DefaultHandler;
 import org.xml.sax.helpers.XMLReaderFactory;
 
+import com.google.common.base.CharMatcher;
+
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
@@ -116,15 +118,18 @@ public class PatentHandler extends DefaultHandler {
 		parents.push(qName);
 	}
 
+
+
 	@Override
 	public void endElement(String uri, String name, String qName) {
 		if (name.equals("us-patent-grant")) {
 			if (currentApplType.equals("utility")) {
 				int id = Integer.parseInt(currentId.toString());
-				String title = currentTitle.toString().replaceAll("\\s+", " "); // remove duplicate whitespace
-				String abstractText = currentAbstract.toString().replaceAll("\\s+", " ");
-				String claimText = currentClaim.toString().replaceAll("\\s+", " ");
-				String description = currentDescription.toString().replaceAll("\\s+", " ");
+
+				String title = CharMatcher.WHITESPACE.collapseFrom(currentTitle, ' '); // remove duplicate whitespace
+				String abstractText = CharMatcher.WHITESPACE.collapseFrom(currentAbstract, ' ');
+				String claimText = CharMatcher.WHITESPACE.collapseFrom(currentClaim, ' ');
+				String description = CharMatcher.WHITESPACE.collapseFrom(currentDescription, ' ');
 				IntArrayList citations = new IntArrayList(patentCitations);
 				patentComsumer.accept(new PatentData(id, title, abstractText, claimText + " " + description, citations));
 			}

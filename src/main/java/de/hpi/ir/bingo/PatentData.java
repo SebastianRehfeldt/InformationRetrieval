@@ -76,6 +76,11 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 		this.citations = null;
 	}
 
+	@Override
+	public int compareTo(PatentData o) {
+		return Integer.compare(patentId, o.patentId);
+	}
+
 	private static class Tokenizer {
 		private static SearchEngineTokenizer instance = new SearchEngineTokenizer();
 	}
@@ -96,10 +101,9 @@ public class PatentData implements Serializable, TableMerger.Mergeable<PatentDat
 		for (Map.Entry<String, Integer> entry : tf.entrySet()) {
 			String key = entry.getKey();
 			Double value = entry.getValue() * idf.getOrDefault(key, 0.0);
-			if(value == 0) {
-				System.out.println("tfidf==0: " + key);
+			if(value > 0) {
+				tfidfToken.add(new TfidfToken(key, value));
 			}
-			tfidfToken.add(new TfidfToken(key, value));
 		}
 		Comparator<TfidfToken> c = Comparator.comparing(TfidfToken::getTfidf);
 		tfidfToken.sort(c.reversed());
