@@ -40,7 +40,7 @@ public class SearchEngineTokenizer {
 		return tokenizeStopStem(text, true);
 	}
 
-	private static final Pattern PATTERN = Pattern.compile("(\\w+)-(\\w+)");
+	private static final Pattern PATTERN = Pattern.compile("\\b(\\w+)-(\\w+)\\b");
 
 	public List<Token> tokenizeStopStem(String text, boolean replaceDashes) {
 		if(replaceDashes)

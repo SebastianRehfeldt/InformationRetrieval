@@ -6,7 +6,6 @@ import java.util.Map;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.Serializer;
-import com.esotericsoftware.kryo.io.Input;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
@@ -27,7 +26,7 @@ public final class Table<T> implements AutoCloseable {
 
 	public static <T> Table<T> open(Path file, Class<T> clazz, Serializer<T> serializer) {
 		TableIndex index = TableUtil.getTableIndex(file);
-		RandomAccessInput input = TableUtil.createInput(file);
+		RandomAccessInput input = TableUtil.createRandomAccessInput(file);
 		return new Table<>(input, index, clazz, serializer);
 	}
 

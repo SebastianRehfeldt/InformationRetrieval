@@ -37,6 +37,7 @@ public final class TableUtil {
 			return kryo;
 		}
 	};
+	public static final int BUFFER_SIZE = 1024 * 1024 * 10;
 
 	static Path getIndexPath(Path file) {
 		return Paths.get(file.toString() + ".index");
@@ -45,15 +46,23 @@ public final class TableUtil {
 	public static Output createOutput(Path file) {
 		try {
 			Files.createDirectories(file.getParent());
-			return new Output(Files.newOutputStream(file));
+			return new Output(Files.newOutputStream(file), BUFFER_SIZE);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	public static RandomAccessInput createInput(Path file) {
+	public static RandomAccessInput createRandomAccessInput(Path file) {
 		try {
 			return new RandomAccessInput(new RandomAccessFile(file.toFile(), "r"));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public static Input createBigBufferInput(Path file) {
+		try {
+			return new Input(Files.newInputStream(file), BUFFER_SIZE);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -73,7 +82,7 @@ public final class TableUtil {
 
 	public static TableIndex getTableIndex(Path tableFile) {
 		Path indexPath = TableUtil.getIndexPath(tableFile);
-		Input indexReader = TableUtil.createInput(indexPath);
+		Input indexReader = TableUtil.createRandomAccessInput(indexPath);
 		TableIndex index = TableUtil.getKryo().readObject(indexReader, TableIndex.class);
 		indexReader.close();
 		return index;

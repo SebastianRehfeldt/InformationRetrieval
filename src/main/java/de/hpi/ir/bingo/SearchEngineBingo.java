@@ -15,6 +15,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Verify;
 import com.google.common.collect.Maps;
 
 import de.hpi.ir.bingo.index.Table;
@@ -124,7 +125,7 @@ public class SearchEngineBingo extends SearchEngine {
 
 	@SuppressWarnings("unchecked")
 	private Int2ObjectMap<IntList> loadCitation() {
-		Input input = TableUtil.createInput(Paths.get(teamDirectory, IndexNames.Citations));
+		Input input = TableUtil.createRandomAccessInput(Paths.get(teamDirectory, IndexNames.Citations));
 		return TableUtil.getKryo().readObject(input, Int2ObjectOpenHashMap.class);
 	}
 
@@ -181,7 +182,7 @@ public class SearchEngineBingo extends SearchEngine {
 		List<QueryResultItem> topResult = result.subList(0, Math.min(topK, result.size()));
 		for (QueryResultItem resultItem : topResult) {
 			PatentData patentData = patentIndex.get(Integer.toString(resultItem.getPatentId()));
-			assert patentData != null;
+			Verify.verify(patentData != null, "the patent doesnt exist");
 			String title = patentData.getTitle();
 			String snippet = resultItem.getSnippet();
 			if (snippet == null) { // snippets might already be created if prf>0

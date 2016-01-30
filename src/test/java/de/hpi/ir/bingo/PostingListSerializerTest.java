@@ -46,7 +46,7 @@ public class PostingListSerializerTest {
 		TableUtil.getKryo().writeObject(output, pl, serializer);
 		output.close();
 
-		Input input = TableUtil.createInput(tmpFile);
+		Input input = TableUtil.createRandomAccessInput(tmpFile);
 		PostingList postingList = TableUtil.getKryo().readObject(input, PostingList.class, serializer);
 
 		assertThat(postingList).isEqualTo(pl);
