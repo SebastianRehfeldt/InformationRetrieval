@@ -17,14 +17,14 @@ public class PageRankTest {
 		Int2ObjectMap<IntList> incomingLinks = new Int2ObjectOpenHashMap<>();
 		incomingLinks.put(1, new IntArrayList(new int[]{2}));
 		incomingLinks.put(2, new IntArrayList(new int[]{1,4}));
-		incomingLinks.put(4, new IntArrayList(new int[]{}));
+		//incomingLinks.put(4, new IntArrayList(new int[]{}));
 
 
 		Int2DoubleMap ranks = PageRank.calculatePageRank(incomingLinks);
 
 		assertThat(ranks.getOrDefault(1, Double.NaN)).isWithin(0.001).of(0.463);
 		assertThat(ranks.getOrDefault(2, Double.NaN)).isWithin(0.001).of(0.486);
-		assertThat(ranks.getOrDefault(4, Double.NaN)).isWithin(0.001).of(0.05);
+		assertThat(ranks.getOrDefault(4, Double.NaN)).isWithin(0.001).of(0.050);
 	}
 
 }

@@ -5,11 +5,15 @@ import com.google.common.collect.ImmutableList;
 
 import de.hpi.ir.bingo.evaluation.CachedWebfile;
 import de.hpi.ir.bingo.evaluation.WebFile;
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author: Bingo
@@ -36,7 +40,7 @@ public class SearchEngineTest {
 		if (COMPRESS)
 			myEngine.compressIndex(); //String directory
 
-		myEngine.calculatePageRank();
+		//myEngine.calculatePageRank();
 
 		//myEngine.printIndexStats(DIRECTORY);
 		//System.exit(0);
@@ -56,10 +60,24 @@ public class SearchEngineTest {
 
 		//System.in.read();
 
+		boolean PRINT_PR = false;
+		if (PRINT_PR) {
+			Int2DoubleMap pageRank = myEngine.getPageRanks();
+			List<Integer> ids = ImmutableList.of(7861321, 7886437, 8074432, 8074897, 8074994);
+			System.out.println("Pageranks");
+			for (Integer id : ids) {
+				System.out.printf("id: %d, pr: %.10f\n", id, pageRank.get(id));
+			}
+			Comparator<Map.Entry<Integer, Double>> comparing = Comparator.comparing(Map.Entry::getValue);
+			System.out.println(pageRank.entrySet().stream().sorted(comparing.reversed()).limit(10).collect(Collectors.toList()));
+		}
+
+
 		Writer resultWriter = Files.newBufferedWriter(Paths.get("queryresults.txt"), Charsets.UTF_8);
 		//List<String> queries = ImmutableList.of("add-on module", "digital signature", "data processing", "\"a scanning\"");
-		List<String> queries = ImmutableList.of("\"graph editor\"", "\"social trend\"", "fossil hydrocarbons", "physiological AND saline", "tires NOT pressure", "linkTo:8201244");
-		//List<String> queries = ImmutableList.of("LinkTo:07920906", "LinkTo:07904949", "LinkTo:08078787","LinkTo:07865308 AND LinkTo:07925708", "LinkTo:07947864 AND LinkTo:07947142", "review guidelines", "on-chip OR OCV", "on-chip ocv");
+		//List<String> queries = ImmutableList.of("\"graph editor\"", "\"social trend\"", "fossil hydrocarbons", "physiological AND saline", "tires NOT pressure", "linkTo:8201244");
+		List<String> queries = ImmutableList.of("LinkTo:07920906", "LinkTo:07904949", "LinkTo:08078787","LinkTo:07865308 AND LinkTo:07925708", "LinkTo:07947864 AND LinkTo:07947142", "review guidelines", "on-chip OR OCV", "on-chip ocv");
+		//List<String> queries = ImmutableList.of();
 		int topK = 15;
 
 		for (int i = 0; i < 1; i++)

@@ -131,8 +131,12 @@ public class SearchEngineBingo extends SearchEngine {
 
 	@SuppressWarnings("unchecked")
 	private Int2DoubleMap loadPageRank() {
-		Input input = TableUtil.createInput(Paths.get(teamDirectory, IndexNames.PageRank));
+		Input input = TableUtil.createBigBufferInput(Paths.get(teamDirectory, IndexNames.PageRank));
 		return TableUtil.getKryo().readObject(input, Int2DoubleOpenHashMap.class);
+	}
+
+	public Int2DoubleMap getPageRanks() {
+		return pageRank;
 	}
 
 	class SearchResult {
@@ -182,7 +186,7 @@ public class SearchEngineBingo extends SearchEngine {
 		List<QueryResultItem> topResult = result.subList(0, Math.min(topK, result.size()));
 		for (QueryResultItem resultItem : topResult) {
 			PatentData patentData = patentIndex.get(Integer.toString(resultItem.getPatentId()));
-			Verify.verify(patentData != null, "the patent doesnt exist");
+			Verify.verifyNotNull(patentData, "the patent doesnt exist");
 			String title = patentData.getTitle();
 			String snippet = resultItem.getSnippet();
 			if (snippet == null) { // snippets might already be created if prf>0

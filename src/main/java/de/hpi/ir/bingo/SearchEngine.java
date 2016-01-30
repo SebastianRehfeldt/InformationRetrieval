@@ -8,6 +8,8 @@ package de.hpi.ir.bingo;
  */
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 
 /* The only changes you should make in this file is to define your baseDirectory and dataDirectory!!
@@ -21,7 +23,7 @@ import java.util.ArrayList;
 public abstract class SearchEngine {
 
 	// paths
-	protected final static String baseDirectory = "";  /************* Define your baseDirectory here !! ******************/
+	protected final static String baseDirectory = Files.exists(Paths.get("k:/SearchEngineBingo")) ? "k:/" : "";  /************* Define your baseDirectory here !! ******************/
 	protected static String teamDirectory; // don't change this
 	// directory containing all xml files from PatentData.zip :
 	protected final static String dataDirectory = "";  /************* Define your dataDirectory here !! ******************/
