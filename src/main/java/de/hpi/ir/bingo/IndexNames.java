@@ -5,4 +5,5 @@ public final class IndexNames {
 	public static final String PostingListsCompressed = "compressedPostingLists";
 	public static final String Patents = "patents";
 	public static final String Citations = "citations";
+	public static final String PageRank = "pageRank";
 }

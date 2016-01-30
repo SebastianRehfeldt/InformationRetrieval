@@ -36,6 +36,8 @@ public class SearchEngineTest {
 		if (COMPRESS)
 			myEngine.compressIndex(); //String directory
 
+		myEngine.calculatePageRank();
+
 		//myEngine.printIndexStats(DIRECTORY);
 		//System.exit(0);
 

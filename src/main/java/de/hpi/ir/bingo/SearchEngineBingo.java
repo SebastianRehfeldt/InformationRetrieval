@@ -12,6 +12,8 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
 import com.esotericsoftware.kryo.io.Input;
+import com.esotericsoftware.kryo.io.Output;
+
 import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 
@@ -22,6 +24,9 @@ import de.hpi.ir.bingo.index.TableWriter;
 import de.hpi.ir.bingo.queries.Query;
 import de.hpi.ir.bingo.queries.QueryParser;
 import de.hpi.ir.bingo.queries.QueryResultItem;
+
+import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
+import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -40,9 +45,11 @@ public class SearchEngineBingo extends SearchEngine {
 	public static final double LOG2 = Math.log(2.0);
 	private Table<PostingList> index;
 	private Table<PatentData> patentIndex;
+	private Int2ObjectMap<IntList> citations = null;
+	private Int2DoubleMap pageRank;
+
 	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
 	private final SnippetBuilder snippetBuilder = new SnippetBuilder();
-	private Int2ObjectMap<IntList> citations = null; 
 
 	public SearchEngineBingo() {
 		super();
@@ -54,6 +61,7 @@ public class SearchEngineBingo extends SearchEngine {
 		//String fileName = "compressed_patents/ipg150106.fixed.zip";
 		String fileName = "k:/data/patentData.zip";
 		new SearchEngineIndexer(teamDirectory).createIndex(fileName, PostingList.NORMAL_SERIALIZER);
+		calculatePageRank();
 	}
 
 	@Override
@@ -61,6 +69,7 @@ public class SearchEngineBingo extends SearchEngine {
 		index = Table.open(Paths.get(teamDirectory, IndexNames.PostingLists), PostingList.class, PostingList.NORMAL_SERIALIZER);
 		patentIndex = Table.open(Paths.get(teamDirectory, IndexNames.Patents), PatentData.class, null);
 		citations = loadCitation();
+		pageRank = loadPageRank();
 		return true;
 	}
 
@@ -77,6 +86,15 @@ public class SearchEngineBingo extends SearchEngine {
 		}
 		reader.close();
 		writer.close();
+	}
+
+	void calculatePageRank() {
+		System.out.println("calculating pagerank");
+		citations = loadCitation();
+		pageRank = PageRank.calculatePageRank(citations);
+		Output output = TableUtil.createOutput(Paths.get(teamDirectory, IndexNames.PageRank));
+		TableUtil.getKryo().writeObject(output, pageRank);
+		output.close();
 	}
 
 	void printIndexStats(String directory) {
@@ -100,6 +118,7 @@ public class SearchEngineBingo extends SearchEngine {
 		index = Table.open(Paths.get(teamDirectory, IndexNames.PostingListsCompressed), PostingList.class, PostingList.COMPRESSING_SERIALIZER);
 		patentIndex = Table.open(Paths.get(teamDirectory, IndexNames.Patents), PatentData.class, null);
 		citations = loadCitation();
+		pageRank = loadPageRank();
 		return true;
 	}
 
@@ -107,6 +126,12 @@ public class SearchEngineBingo extends SearchEngine {
 	private Int2ObjectMap<IntList> loadCitation() {
 		Input input = TableUtil.createInput(Paths.get(teamDirectory, IndexNames.Citations));
 		return TableUtil.getKryo().readObject(input, Int2ObjectOpenHashMap.class);
+	}
+
+	@SuppressWarnings("unchecked")
+	private Int2DoubleMap loadPageRank() {
+		Input input = TableUtil.createInput(Paths.get(teamDirectory, IndexNames.PageRank));
+		return TableUtil.getKryo().readObject(input, Int2DoubleOpenHashMap.class);
 	}
 
 	class SearchResult {
