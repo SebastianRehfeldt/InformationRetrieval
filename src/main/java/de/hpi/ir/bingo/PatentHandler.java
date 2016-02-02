@@ -136,7 +136,7 @@ public final class PatentHandler extends DefaultHandler {
 				patentComsumer.accept(new PatentData(id, title, abstractText, claimText + " " + description, citations));
 			}
 		}
-		if (name.equals("patcit")) {
+		if (name.equals("patcit") && currentCiteId.length() < 10 && CharMatcher.DIGIT.matchesAllOf(currentCiteId)) {
 			int cited = Integer.parseInt(currentCiteId.toString());
 			if (currentCiteCountry.toString().equals("US") && cited >= minID && cited <= maxID) {
 				try {
