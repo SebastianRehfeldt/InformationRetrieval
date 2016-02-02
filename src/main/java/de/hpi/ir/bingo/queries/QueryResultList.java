@@ -12,7 +12,7 @@ import com.google.common.collect.Lists;
 import de.hpi.ir.bingo.PostingList;
 import de.hpi.ir.bingo.PostingListItem;
 
-public class QueryResultList {
+public final class QueryResultList {
 	public static final Comparator<? super QueryResultItem> SCORE_COMPARATOR = Comparator.comparing(QueryResultItem::getScore).reversed();
 
 	static final double MISSING_SCORE = Math.log(1.0 / 100_000);

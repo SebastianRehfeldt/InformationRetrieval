@@ -13,7 +13,7 @@ import com.google.common.collect.Lists;
 import de.hpi.ir.bingo.SearchEngineTokenizer;
 import de.hpi.ir.bingo.Token;
 
-public class QueryParser {
+public final class QueryParser {
 
 	private static final String queryPartRegex = "(AND|OR|NOT)|#([0-9]+)|LinkTo:([0-9]+)|\"(.+?)\"|([^ ]+)";
 	private static final Pattern queryPartPattern = Pattern.compile(queryPartRegex);

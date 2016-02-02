@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class CachedWebfile {
+public final class CachedWebfile {
 
 	private Map<String, ArrayList<String>> cache;
 	private Path cacheFile = Paths.get("webfilecache.bin");

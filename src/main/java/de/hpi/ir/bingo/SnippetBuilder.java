@@ -4,7 +4,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 
 import java.util.List;
 
-public class SnippetBuilder {
+public final class SnippetBuilder {
 
 	private static final int WINDOWS_SIZE = 6;
 	private static final int MAX_SNIPPET_AFTER_END = 50;

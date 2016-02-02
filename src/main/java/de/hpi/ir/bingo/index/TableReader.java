@@ -1,5 +1,6 @@
 package de.hpi.ir.bingo.index;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 import com.google.common.collect.Maps;
 
@@ -41,7 +42,7 @@ public final class TableReader<T> implements AutoCloseable {
 
 	@Override
 	public String toString() {
-		return Objects.toStringHelper(this)
+		return MoreObjects.toStringHelper(this)
 				.add("file", file)
 				.add("clazz", clazz.getSimpleName())
 				.add("position", reader.total())

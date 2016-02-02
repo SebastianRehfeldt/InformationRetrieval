@@ -3,7 +3,7 @@ package de.hpi.ir.bingo.index;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
 
-public class TfidfToken {
+public final class TfidfToken {
 	private final String text;
 	private final Double tfidf;
 

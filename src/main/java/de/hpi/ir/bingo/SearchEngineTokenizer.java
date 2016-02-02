@@ -13,7 +13,7 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class SearchEngineTokenizer {
+public final class SearchEngineTokenizer {
 
 	private final Analyzer analyzer = new CustomAnalyzer();
 

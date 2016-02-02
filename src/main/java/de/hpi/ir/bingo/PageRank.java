@@ -12,7 +12,7 @@ import it.unimi.dsi.fastutil.ints.IntLists;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 
-public class PageRank {
+public final class PageRank {
 
 	public static Int2DoubleMap calculatePageRank(Int2ObjectMap<IntList> incomingLinks) {
 		int[] ids = getIds(incomingLinks);

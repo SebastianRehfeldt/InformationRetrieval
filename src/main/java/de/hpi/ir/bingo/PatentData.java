@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class PatentData implements Serializable, TableMerger.Mergeable<PatentData> {
+public final class PatentData implements Serializable, TableMerger.Mergeable<PatentData> {
 	private static final long MAXIMPORTANTTERMS = 7;
 
 	private final int patentId;

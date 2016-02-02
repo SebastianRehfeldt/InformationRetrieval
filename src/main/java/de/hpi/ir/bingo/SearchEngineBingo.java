@@ -41,7 +41,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
  * multi-threaded? - stemming? - stopword removal? - index algorithm? - etc. <p/> Keep in mind to
  * include your implementation decisions also in the pdf file of each assignment
  */
-public class SearchEngineBingo extends SearchEngine {
+public final class SearchEngineBingo extends SearchEngine {
 
 	public static final double LOG2 = Math.log(2.0);
 	private Table<PostingList> index;

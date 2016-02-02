@@ -6,7 +6,7 @@ import com.google.common.base.Verify;
 
 import de.hpi.ir.bingo.PostingListItem;
 
-public class QueryResultItem {
+public final class QueryResultItem {
 	private final PostingListItem item;
 	private double score;
 	private String snippet;

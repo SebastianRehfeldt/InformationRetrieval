@@ -16,7 +16,7 @@ import org.jsoup.nodes.Element;
 * the result set will be at most 100 US utility patent grants from 2011 to 2015
 */
 
-public class WebFile {
+public final class WebFile {
 
     private java.util.Map<String, java.util.List<String>> responseHeader = null;
     private java.net.URL responseURL = null;

@@ -43,7 +43,7 @@ import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import it.unimi.dsi.fastutil.ints.IntListIterator;
 
-public class SearchEngineIndexer {
+public final class SearchEngineIndexer {
 	private final SearchEngineTokenizer tokenizer = new SearchEngineTokenizer();
 
 	private final String directory;

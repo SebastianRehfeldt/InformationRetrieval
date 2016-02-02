@@ -25,7 +25,7 @@ import com.google.common.base.CharMatcher;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 
-public class PatentHandler extends DefaultHandler {
+public final class PatentHandler extends DefaultHandler {
 
 	private Stack<String> parents;
 	private StringBuilder currentTitle;
@@ -36,6 +36,8 @@ public class PatentHandler extends DefaultHandler {
 
 	private IntList patentCitations;
 
+	private final int minID = 7861317; // 2011
+	private final int maxID = 8984661; // 2015
 
 	private String currentApplType;
 	private final Consumer<PatentData> patentComsumer;
@@ -135,9 +137,10 @@ public class PatentHandler extends DefaultHandler {
 			}
 		}
 		if (name.equals("patcit")) {
-			if (currentCiteCountry.toString().equals("US") && currentCiteDate.toString().compareTo("20110000") > 0) {
+			int cited = Integer.parseInt(currentCiteId.toString());
+			if (currentCiteCountry.toString().equals("US") && cited >= minID && cited <= maxID) {
 				try {
-					patentCitations.add(Integer.parseInt(currentCiteId.toString()));
+					patentCitations.add(cited);
 				} catch (NumberFormatException e) {
 					// not a valid integer
 				}
