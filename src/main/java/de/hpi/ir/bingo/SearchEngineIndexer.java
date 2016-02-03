@@ -75,7 +75,8 @@ public final class SearchEngineIndexer {
 
 		long totalMemory = Runtime.getRuntime().totalMemory();
 		if (totalMemory < 1800 * 1024 * 1024) {
-			throw new RuntimeException("run at least with -Xms2g");
+//			throw new RuntimeException("run at least with -Xms2g");
+			System.out.printf("you are only indexing with %d MB of heap space!!!\n", totalMemory/(1024*1024));
 		}
 
 		int THREADS = 8;
