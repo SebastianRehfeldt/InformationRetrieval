@@ -40,6 +40,7 @@ public final class QueryParser {
 			}
 			String linkToId = m.group(3);
 			if (linkToId != null) {
+				isBoolean = true; // linkTo queries should be ranked by a boolean relevance model
 				int linkTo = Integer.parseInt(linkToId);
 				queryParts.add(new LinkToQuery(linkTo, queryOperator));
 			}
@@ -53,21 +54,35 @@ public final class QueryParser {
 				queryParts.addAll(parsePart(term, queryOperator));
 			}
 
-			if(operator == null) {
+			if (operator == null) {
 				queryOperator = QueryOperator.DEFAULT;
 			}
 		}
 
+		boolean HIGH_QUALITY = false;
+
 		if (isBoolean) {
 			return new BooleanQuery(queryParts);
 		} else {
+			int l = queryParts.size();
+			if (HIGH_QUALITY) {
+				for (int i = 1; i < l; i++) {
+					if (queryParts.get(i) instanceof TermQuery &&
+							queryParts.get(i - 1) instanceof TermQuery) {
+						queryParts.add(new PhraseQuery(
+								ImmutableList.of(
+										queryParts.get(i - 1),
+										queryParts.get(i)), QueryOperator.DEFAULT));
+					}
+				}
+			}
 			return new NormalQuery(queryParts, prf);
 		}
 	}
 
 	private static List<QueryPart> parsePart(String term, QueryOperator queryOperator) {
 		if (term.endsWith("*")) {
-			return ImmutableList.of(new PrefixQuery(term.substring(0, term.length()-1), queryOperator));
+			return ImmutableList.of(new PrefixQuery(term.substring(0, term.length() - 1), queryOperator));
 		} else {
 			List<QueryPart> result = Lists.newArrayList();
 			for (Token token : tokenizer.tokenizeStopStem(term)) {

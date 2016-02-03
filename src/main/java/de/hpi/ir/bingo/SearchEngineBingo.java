@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-
 import com.google.common.base.Charsets;
 import com.google.common.base.Verify;
 import com.google.common.collect.Maps;
@@ -25,7 +24,6 @@ import de.hpi.ir.bingo.index.TableWriter;
 import de.hpi.ir.bingo.queries.Query;
 import de.hpi.ir.bingo.queries.QueryParser;
 import de.hpi.ir.bingo.queries.QueryResultItem;
-
 import it.unimi.dsi.fastutil.ints.Int2DoubleMap;
 import it.unimi.dsi.fastutil.ints.Int2DoubleOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
@@ -119,7 +117,7 @@ public final class SearchEngineBingo extends SearchEngine {
 		index = Table.open(Paths.get(teamDirectory, IndexNames.PostingListsCompressed), PostingList.class, PostingList.COMPRESSING_SERIALIZER);
 		patentIndex = Table.open(Paths.get(teamDirectory, IndexNames.Patents), PatentData.class, null);
 		citations = loadCitation();
-		pageRank = loadPageRank();
+		//pageRank = loadPageRank();
 		return true;
 	}
 
@@ -161,7 +159,10 @@ public final class SearchEngineBingo extends SearchEngine {
 	@Override
 	ArrayList<String> search(String query, int topK) {
 		List<SearchResult> result = searchWithSearchResult(query, topK);
-		return new ArrayList<>(getTitles(result));
+		List<String> strings = result.stream()
+				.map(r -> String.format("%d\t%s\n%s", r.patentId, r.title, r.snippet))
+				.collect(Collectors.toList());
+		return new ArrayList<>(strings);
 	}
 
 	public List<String> getTitles(List<SearchResult> result) {
@@ -196,12 +197,12 @@ public final class SearchEngineBingo extends SearchEngine {
 		}
 		return searchResult;
 	}
-	
-	
+
+
 	// returns the normalized discounted cumulative gain at a particular rank position 'p'
 	@Override
 	Double computeNdcg(ArrayList<String> goldRanking, ArrayList<String> ranking, int p) {
-		return computeNdcg((List<String>)goldRanking, (List<String>)ranking, p);
+		return computeNdcg((List<String>) goldRanking, (List<String>) ranking, p);
 	}
 
 	// better signature with List and double instead of ArrayList and Double
@@ -209,7 +210,7 @@ public final class SearchEngineBingo extends SearchEngine {
 		Map<String, Double> gains = Maps.newHashMap();
 		double perfectDcg = 0;
 		for (int i = 0; i < goldRanking.size(); i++) {
-			double gain = 1.0 + Math.floor(10 * Math.pow(0.5, 0.1 * (i+1)));
+			double gain = 1.0 + Math.floor(10 * Math.pow(0.5, 0.1 * (i + 1)));
 			gains.putIfAbsent(goldRanking.get(i), gain);
 			if (i < ranking.size()) {
 				if (i == 0) {
@@ -231,7 +232,7 @@ public final class SearchEngineBingo extends SearchEngine {
 				}
 			}
 		}
-		return dcg/perfectDcg;
+		return dcg / perfectDcg;
 	}
 
 	//printing

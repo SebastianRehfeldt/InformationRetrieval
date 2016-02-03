@@ -54,8 +54,9 @@ public final class PrefixQuery implements QueryPart {
 	@Override
 	public String toString() {
 		return MoreObjects.toStringHelper(this)
-				.addValue(queryOperator != QueryOperator.DEFAULT ? queryOperator + " " : "")
+				.addValue(queryOperator != QueryOperator.DEFAULT ? queryOperator + " " : null)
 				.add("prefix", prefix)
+				.omitNullValues()
 				.toString();
 	}
 

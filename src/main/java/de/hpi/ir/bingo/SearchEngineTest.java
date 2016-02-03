@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
 public class SearchEngineTest {
 
 	private static final boolean CREATE_INDEX = false;
-	private static final boolean COMPRESS = false;
+	private static final boolean COMPRESS = CREATE_INDEX;
 	private static final boolean READ_COMPRESSED = true;
 
 	public static void main(String args[]) throws Exception {
@@ -66,47 +66,49 @@ public class SearchEngineTest {
 			List<Integer> ids = ImmutableList.of(7861321, 7886437, 8074432, 8074897, 8074994);
 			System.out.println("Pageranks");
 			for (Integer id : ids) {
-				System.out.printf("id: %d, pr: %.10f\n", id, pageRank.get(id));
+				System.out.printf("id: %d, pr: %e\n", id, pageRank.get(id));
 			}
 			Comparator<Map.Entry<Integer, Double>> comparing = Comparator.comparing(Map.Entry::getValue);
-			System.out.println(pageRank.entrySet().stream().sorted(comparing.reversed()).limit(10).collect(Collectors.toList()));
+			//System.out.println(pageRank.entrySet().stream().sorted(comparing.reversed()).limit(10).collect(Collectors.toList()));
 		}
 
 
 		Writer resultWriter = Files.newBufferedWriter(Paths.get("queryresults.txt"), Charsets.UTF_8);
 		//List<String> queries = ImmutableList.of("add-on module", "digital signature", "data processing", "\"a scanning\"");
 		//List<String> queries = ImmutableList.of("\"graph editor\"", "\"social trend\"", "fossil hydrocarbons", "physiological AND saline", "tires NOT pressure", "linkTo:8201244");
-		List<String> queries = ImmutableList.of("LinkTo:07920906", "LinkTo:07904949", "LinkTo:08078787","LinkTo:07865308 AND LinkTo:07925708", "LinkTo:07947864 AND LinkTo:07947142", "review guidelines", "on-chip OR OCV", "on-chip ocv");
-		//List<String> queries = ImmutableList.of();
-		int topK = 15;
+		//List<String> queries = ImmutableList.of("LinkTo:07920906", "LinkTo:07904949", "LinkTo:08078787","LinkTo:07865308 AND LinkTo:07925708", "LinkTo:07947864 AND LinkTo:07947142", "review guidelines", "on-chip AND OCV NOT asynchronous", "on-chip ocv");
+		List<String> queries = ImmutableList.of("Marker pen holder", "sodium polyphosphates","\"ionizing radiation\"",
+				"\"solar coronal holes\"", "\"patterns in scale-free networks\"", "radiographic NOT ventilator",
+				"multi-label AND learning", "LinkTo:07866385");
+		int topK = 10;
 
 		for (int i = 0; i < 1; i++)
 		for (String query : queries) {
 			start = System.currentTimeMillis();
-
 			List<SearchEngineBingo.SearchResult> results = myEngine.searchWithSearchResult(query, topK); //topK, prf
-			List<String> patentIds = myEngine.getIds(results);
 			time = System.currentTimeMillis() - start;
 
 			System.out.print("Searching Time:\t" + time + "\tms\n");
 
+			List<String> patentIds = myEngine.getIds(results);
 			List<String> goldStandard = webFile.getGoogleRanking(query);
 
-			resultWriter.write("\"" + query + "\"\n");
+			resultWriter.write("[" + query + "]\n");
 			double ndcg = myEngine.computeNdcg(goldStandard, patentIds, topK);
 			System.out.printf("NDCG: %.3f\n", ndcg);
 			resultWriter.write(String.format("NDCG: %.3f\n", ndcg));
+			resultWriter.write(String.format("Time: %dms\n", time));
 			if (results.isEmpty()) {
-				System.out.println("No results found");
+				System.out.println("No results found, google results: " + goldStandard);
 			} else {
 				for (SearchEngineBingo.SearchResult result : results) {
 					if (result.snippet.equals("linked")) {
 						//System.out.println(result.patentId + " " + result.title);
-						resultWriter.write(result.patentId + " " + result.title + "\n");
+						resultWriter.write(result.patentId + "\t" + result.title + "\n");
 					} else {
 						double gain = myEngine.computeNdcg(goldStandard, ImmutableList.of("" + result.patentId), 1);
 						//System.out.println(result + "\nScore: " + result.score + " Gain:" + gain + "\n");
-						resultWriter.write(result + "\n\n");
+						resultWriter.write(String.format("%d\t%s\n%s\n\n", result.patentId, result.title, result.snippet));
 					}
 				}
 			}

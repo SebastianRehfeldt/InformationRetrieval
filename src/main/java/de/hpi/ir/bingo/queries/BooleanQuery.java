@@ -66,11 +66,11 @@ public final class BooleanQuery implements Query {
 						resultList = resultList.not(resultList2);
 						break;
 					default:
-						resultList = resultList.combine(resultList2);
+						resultList = resultList.and(resultList2);
 				}
 			}
 			List<QueryResultItem> result = Lists.newArrayList(resultList.getItems());
-			result.sort(QueryResultList.SCORE_COMPARATOR);
+			result.sort(QueryResultList.ID_COMPARATOR);
 			return result;
 	}
 }

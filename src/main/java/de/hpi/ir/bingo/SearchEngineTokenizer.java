@@ -41,10 +41,12 @@ public final class SearchEngineTokenizer {
 	}
 
 	private static final Pattern PATTERN = Pattern.compile("\\b(\\w+)-(\\w+)\\b");
+	//private static final Pattern PATTERN = Pattern.compile("(\\w)-(\\w)");
 
 	public List<Token> tokenizeStopStem(String text, boolean replaceDashes) {
 		if(replaceDashes)
 			text = PATTERN.matcher(text).replaceAll("$1$2 $1 $2"); // changes "add-on" to "addon", "add", "on"
+			//text = PATTERN.matcher(text).replaceAll("$1X$2"); // changes "add-on" to "addXon"
 		return tokenizeStopStem(new StringReader(text));
 	}
 }

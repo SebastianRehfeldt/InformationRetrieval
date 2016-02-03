@@ -23,7 +23,7 @@ public final class SnippetBuilder {
 			start++; // skip title
 
 		if (start == lastValidPosition) {
-			int end = patent.getAbstractText().indexOf('.');
+			int end = Math.max(0,patent.getAbstractText().indexOf('.'));
 			boolean addElipses = false;
 			if (end > 50) {
 				end = 50;

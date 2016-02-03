@@ -14,6 +14,7 @@ import de.hpi.ir.bingo.PostingListItem;
 
 public final class QueryResultList {
 	public static final Comparator<? super QueryResultItem> SCORE_COMPARATOR = Comparator.comparing(QueryResultItem::getScore).reversed();
+	public static final Comparator<? super QueryResultItem> ID_COMPARATOR = Comparator.comparing(QueryResultItem::getPatentId).reversed();
 
 	static final double MISSING_SCORE = Math.log(1.0 / 100_000);
 

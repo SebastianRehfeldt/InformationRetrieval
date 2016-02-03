@@ -55,8 +55,9 @@ public final class LinkToQuery implements QueryPart {
 	@Override
 	public String toString() {
 		return MoreObjects.toStringHelper(this)
-				.addValue(queryOperator != QueryOperator.DEFAULT ? queryOperator + " " : " ")
+				.addValue(queryOperator != QueryOperator.DEFAULT ? queryOperator + " " : null)
 				.add("linkTo", linkTo)
+				.omitNullValues()
 				.toString();
 	}
 }
