@@ -6,6 +6,7 @@ import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -15,6 +16,7 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import com.google.common.base.Charsets;
 import com.google.common.base.Verify;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 
 import de.hpi.ir.bingo.index.Table;
@@ -93,15 +95,19 @@ public final class SearchEngineBingo extends SearchEngine {
 		output.close();
 	}
 
-	void printIndexStats(String directory) {
+	void printIndexStats() {
 		System.out.println("writing stats");
-		TableReader<PostingList> reader = new TableReader<>(Paths.get(directory, IndexNames.PostingLists), PostingList.class,
+		TableReader<PostingList> reader = new TableReader<>(Paths.get(teamDirectory, IndexNames.PostingLists), PostingList.class,
 				PostingList.NORMAL_SERIALIZER);
 		Map.Entry<String, PostingList> posting;
-		try {
-			BufferedWriter writer = Files.newBufferedWriter(Paths.get("stats.txt"), Charsets.UTF_8);
+		try (BufferedWriter writer = Files.newBufferedWriter(Paths.get("stats.txt"), Charsets.UTF_8)){
+			List<Entry<String, Integer>> stats = Lists.newArrayList();
 			while ((posting = reader.readNext()) != null) {
-				writer.write(posting.getKey() + "|||" + posting.getValue().getDocumentCount() + "\n");
+				stats.add(Maps.immutableEntry(posting.getKey(), posting.getValue().getDocumentCount()));
+			}
+			stats.sort(Comparator.comparing(Entry::getValue));
+			for (Entry<String, Integer> stat : stats) {
+				writer.write(stat.getKey() + "|||" + stat.getValue() + "\n");
 			}
 		} catch (IOException e) {
 			throw new RuntimeException(e);
