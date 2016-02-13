@@ -62,10 +62,10 @@ public final class QueryResultList {
 			if (p1.getPatentId() < p2.getPatentId()) {
 				i1++;
 			} else if (p1.getPatentId() == p2.getPatentId()) {
-				PostingListItem and = p1.getItem().merge(p2.getItem());
+				PostingListItem andPostingList = p1.getItem().merge(p2.getItem());
 				double score = p1.getScore() + p2.getScore();
 				String snippet = p1.getSnippet() != null ? p1.getSnippet() : p2.getSnippet();
-				result.addItem(new QueryResultItem(and, score, snippet));
+				result.addItem(new QueryResultItem(andPostingList, score, snippet));
 				i1++;
 				i2++;
 			} else {
@@ -113,7 +113,7 @@ public final class QueryResultList {
 			QueryResultItem p2 = items2.get(i2);
 			if (p1.getPatentId() < p2.getPatentId()) {
 				double score = p1.getScore() + MISSING_SCORE * other.combinations;
-				result.addItem(new QueryResultItem(p1.getItem(), score, p1.getSnippet()));
+				result.addItem(p1.withScore(score));
 				i1++;
 			} else if (p1.getPatentId() == p2.getPatentId()) {
 				PostingListItem merged = p1.getItem().merge(p2.getItem());
@@ -124,17 +124,55 @@ public final class QueryResultList {
 				i2++;
 			} else {
 				double score = p2.getScore() + MISSING_SCORE * combinations;
-				result.addItem(new QueryResultItem(p2.getItem(), score, p2.getSnippet()));
+				result.addItem(p2.withScore(score));
 				i2++;
 			}
 		}
 		while (i1 < items.size()) {
 			QueryResultItem p1 = items.get(i1++);
-			result.addItem(new QueryResultItem(p1.getItem(), p1.getScore() + MISSING_SCORE * other.combinations, p1.getSnippet()));
+			result.addItem(p1.withScore(p1.getScore() + MISSING_SCORE * other.combinations));
 		}
 		while (i2 < items2.size()) {
 			QueryResultItem p2 = items2.get(i2++);
-			result.addItem(new QueryResultItem(p2.getItem(), p2.getScore() + MISSING_SCORE * combinations, p2.getSnippet()));
+			result.addItem(p2.withScore(p2.getScore() + MISSING_SCORE * combinations));
+		}
+		return result;
+	}
+
+	/**
+	 * Combines results but doesnt merge position lists. Takes positionlists from this instance
+	 */
+	public QueryResultList combineOnlyScore(QueryResultList other) {
+		Preconditions.checkNotNull(other);
+		List<QueryResultItem> items2 = other.items;
+		int i1 = 0, i2 = 0;
+		QueryResultList result = new QueryResultList(combinations + other.combinations);
+		while (i1 < items.size() && i2 < items2.size()) {
+			QueryResultItem p1 = items.get(i1);
+			QueryResultItem p2 = items2.get(i2);
+			if (p1.getPatentId() < p2.getPatentId()) {
+				double score = p1.getScore() + MISSING_SCORE * other.combinations;
+				result.addItem(p1.withScore(score));
+				i1++;
+			} else if (p1.getPatentId() == p2.getPatentId()) {
+				double score = p1.getScore() + p2.getScore();
+				String snippet = p1.getSnippet() != null ? p1.getSnippet() : p2.getSnippet();
+				result.addItem(new QueryResultItem(p1.getItem(), score, snippet));
+				i1++;
+				i2++;
+			} else {
+				double score = p2.getScore() + MISSING_SCORE * combinations;
+				result.addItem(p2.withScore(score));
+				i2++;
+			}
+		}
+		while (i1 < items.size()) {
+			QueryResultItem p1 = items.get(i1++);
+			result.addItem(p1.withScore(p1.getScore() + MISSING_SCORE * other.combinations));
+		}
+		while (i2 < items2.size()) {
+			QueryResultItem p2 = items2.get(i2++);
+			result.addItem(p2.withScore(p2.getScore() + MISSING_SCORE * combinations));
 		}
 		return result;
 	}
@@ -203,4 +241,5 @@ public final class QueryResultList {
 	public int hashCode() {
 		return Objects.hashCode(items, combinations);
 	}
+
 }

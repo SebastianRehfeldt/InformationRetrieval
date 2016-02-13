@@ -3,8 +3,11 @@ package de.hpi.ir.bingo.queries;
 import java.util.Objects;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 import de.hpi.ir.bingo.PostingList;
+import de.hpi.ir.bingo.Settings;
 import de.hpi.ir.bingo.index.Table;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -47,9 +50,10 @@ public final class TermQuery implements QueryPart {
 				.toString();
 	}
 
+
 	@Override
 	public QueryResultList execute(Table<PostingList> index, Int2ObjectMap<IntList> citations) {
-		PostingList postingList = index.get(term);
+		PostingList postingList = Settings.USE_CACHING ? index.getCached(term) : index.get(term);
 		return postingList == null ? new QueryResultList() : new QueryResultList(postingList);
 	}
 }

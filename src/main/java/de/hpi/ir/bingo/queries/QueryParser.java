@@ -11,6 +11,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import de.hpi.ir.bingo.SearchEngineTokenizer;
+import de.hpi.ir.bingo.Settings;
 import de.hpi.ir.bingo.Token;
 
 public final class QueryParser {
@@ -59,23 +60,12 @@ public final class QueryParser {
 			}
 		}
 
-		boolean HIGH_QUALITY = false;
 
 		if (isBoolean) {
 			return new BooleanQuery(queryParts);
 		} else {
 			int l = queryParts.size();
-			if (HIGH_QUALITY) {
-				for (int i = 1; i < l; i++) {
-					if (queryParts.get(i) instanceof TermQuery &&
-							queryParts.get(i - 1) instanceof TermQuery) {
-						queryParts.add(new PhraseQuery(
-								ImmutableList.of(
-										queryParts.get(i - 1),
-										queryParts.get(i)), QueryOperator.DEFAULT));
-					}
-				}
-			}
+
 			return new NormalQuery(queryParts, prf);
 		}
 	}

@@ -40,13 +40,13 @@ public final class SearchEngineTokenizer {
 		return tokenizeStopStem(text, true);
 	}
 
-	private static final Pattern PATTERN = Pattern.compile("\\b(\\w+)-(\\w+)\\b");
-	//private static final Pattern PATTERN = Pattern.compile("(\\w)-(\\w)");
+	//private static final Pattern PATTERN = Pattern.compile("\\b(\\w+)-(\\w+)\\b");
+	private static final Pattern PATTERN = Pattern.compile("(\\w)-(\\w)");
 
 	public List<Token> tokenizeStopStem(String text, boolean replaceDashes) {
 		if(replaceDashes)
-			text = PATTERN.matcher(text).replaceAll("$1$2 $1 $2"); // changes "add-on" to "addon", "add", "on"
-			//text = PATTERN.matcher(text).replaceAll("$1X$2"); // changes "add-on" to "addXon"
+			//text = PATTERN.matcher(text).replaceAll("$1$2 $1 $2"); // changes "add-on" to "addon", "add", "on"
+			text = PATTERN.matcher(text).replaceAll("$1X$2"); // changes "add-on" to "addXon"
 		return tokenizeStopStem(new StringReader(text));
 	}
 }

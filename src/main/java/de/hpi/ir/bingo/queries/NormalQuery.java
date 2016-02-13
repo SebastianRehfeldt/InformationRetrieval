@@ -13,6 +13,7 @@ import com.google.common.collect.Maps;
 
 import de.hpi.ir.bingo.PatentData;
 import de.hpi.ir.bingo.PostingList;
+import de.hpi.ir.bingo.Settings;
 import de.hpi.ir.bingo.SnippetBuilder;
 import de.hpi.ir.bingo.index.Table;
 import de.hpi.ir.bingo.index.TfidfToken;
@@ -36,15 +37,31 @@ public final class NormalQuery implements Query {
 		if (parts.isEmpty()) {
 			return Collections.emptyList();
 		}
-		QueryResultList resultList = parts.get(0).execute(index, citations);
-		resultList.calculateTfidfScores(1.0, patents.getSize());
+		QueryResultList previusResult = null;
+		QueryResultList finalResult = parts.get(0).execute(index, citations);
+		finalResult.calculateTfidfScores(1.0, patents.getSize());
+		if (parts.get(0) instanceof TermQuery) {
+			previusResult = finalResult;
+		}
 		for (int i = 1; i < parts.size(); i++) {
-			QueryResultList resultList2 = parts.get(i).execute(index, citations);
-			resultList2.calculateTfidfScores(1.0, patents.getSize());
-			resultList = resultList.combine(resultList2);
+			QueryResultList currentResult = parts.get(i).execute(index, citations);
+			currentResult.calculateTfidfScores(1.0, patents.getSize());
+			finalResult = finalResult.combine(currentResult);
+			if (parts.get(i) instanceof TermQuery && Settings.HIGH_QUALITY) { // check if terms occur next to each other
+				if (previusResult != null) {
+					QueryResultList combinedResult = previusResult.combinePhrase(currentResult);
+					combinedResult.calculateTfidfScores(0.1, patents.getSize());
+					finalResult = finalResult.combineOnlyScore(combinedResult);
+				}
+				previusResult = currentResult;
+			} else {
+				previusResult = null;
+			}
 		}
 
-		List<QueryResultItem> result = Lists.newArrayList(resultList.getItems());
+		List<QueryResultItem> result = finalResult.getItems().stream().map(r ->
+				r.withScore(r.getScore())
+		).collect(Collectors.toList());
 		result.sort(QueryResultList.SCORE_COMPARATOR);
 
 		if (prf > 0) {
@@ -53,9 +70,10 @@ public final class NormalQuery implements Query {
 			for (String stringDoubleEntry : topToken) {
 				QueryResultList resultList2 = new TermQuery(stringDoubleEntry, null).execute(index, citations);
 				resultList2.calculateTfidfScores(0.1, patents.getSize());
-				resultList = resultList.combine(resultList2);
+				finalResult = finalResult.combine(resultList2);
 			}
-			result = Lists.newArrayList(resultList.getItems());
+			result = Lists.newArrayList(finalResult.getItems());
+
 			result.sort(QueryResultList.SCORE_COMPARATOR);
 		}
 		return result;

@@ -29,6 +29,7 @@ public final class TableTest {
 
 		Table<String> table = Table.open(tmpFile, String.class, null);
 		assertThat(table.get("k2")).isEqualTo("v2");
+		assertThat(table.getCached("k2")).isEqualTo("v2");
 		assertThat(table.get("k1")).isEqualTo("v1");
 		assertThat(table.get("k11")).isNull();
 		assertThat(table.get("k22")).isNull();

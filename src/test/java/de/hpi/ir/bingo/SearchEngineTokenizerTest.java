@@ -13,19 +13,19 @@ public class SearchEngineTokenizerTest {
 	@Test
 	public void testTokenizeStopStem() throws Exception {
 		List<Token> tokens = tokenizer.tokenizeStopStem("add-on - module");
-		assertThat(tokens.get(0).text).isEqualTo("addon");
-		assertThat(tokens.get(1).text).isEqualTo("add");
-		assertThat(tokens.get(2).text).isEqualTo("modul");
+		assertThat(tokens.get(0).text).isEqualTo("addxon");
+		//assertThat(tokens.get(1).text).isEqualTo("add");
+		assertThat(tokens.get(1).text).isEqualTo("modul");
 	}
 
 	@Test
 	public void testTokenizeStopStem2() throws Exception {
 		List<Token> tokens = tokenizer.tokenizeStopStem("def add-123 xyz");
 		assertThat(tokens.get(0).text).isEqualTo("def");
-		assertThat(tokens.get(1).text).isEqualTo("add123");
-		assertThat(tokens.get(2).text).isEqualTo("add");
-		assertThat(tokens.get(3).text).isEqualTo("123");
-		assertThat(tokens.get(4).text).isEqualTo("xyz");
+		assertThat(tokens.get(1).text).isEqualTo("addx123");
+//		assertThat(tokens.get(2).text).isEqualTo("add");
+//		assertThat(tokens.get(3).text).isEqualTo("123");
+		assertThat(tokens.get(2).text).isEqualTo("xyz");
 	}
 
 	@Test
