@@ -19,7 +19,7 @@ public final class SnippetBuilder {
 		while (lastValidPosition < positions.size() && positions.getInt(lastValidPosition) < patent.getClaimOffset())
 			lastValidPosition++;
 
-		while (start < lastValidPosition && positions.get(start) < abstractOffset)
+		while (start < lastValidPosition && positions.getInt(start) < abstractOffset)
 			start++; // skip title
 
 		if (start == lastValidPosition) {
@@ -44,7 +44,7 @@ public final class SnippetBuilder {
 				bestEnd = end;
 			}
 			// window found
-			while (end < lastValidPosition && positions.get(end) - positions.get(start) > WINDOWS_SIZE) {
+			while (end < lastValidPosition && positions.getInt(end) - positions.getInt(start) > WINDOWS_SIZE) {
 				start++;
 			}
 		}

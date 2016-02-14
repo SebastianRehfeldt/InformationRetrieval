@@ -137,6 +137,9 @@ public final class SearchEngineBingo extends SearchEngine {
 	}
 
 	public Int2DoubleMap getPageRanks() {
+		if (pageRank == null) {
+			pageRank = loadPageRank();
+		}
 		return pageRank;
 	}
 

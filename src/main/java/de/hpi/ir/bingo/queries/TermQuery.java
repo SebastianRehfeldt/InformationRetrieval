@@ -25,6 +25,10 @@ public final class TermQuery implements QueryPart {
 		this.queryOperator = queryOperator;
 	}
 
+	public String getTerm() {
+		return term;
+	}
+
 	@Override
 	public QueryOperator getOperator() {
 		return queryOperator;

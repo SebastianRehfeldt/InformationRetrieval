@@ -69,14 +69,14 @@ public final class QueryResultItem {
 		if (item.getPositions().isEmpty()) {
 			return false;
 		}
-		return item.getPositions().get(0) < item.getTitleWordCount();
+		return item.getPositions().getInt(0) < item.getTitleWordCount();
 	}
 
 	public boolean hasTermInAbstract() {
 		if (item.getPositions().isEmpty()) {
 			return false;
 		}
-		return item.getPositions().get(0) < item.getTitleWordCount() + item.getAbstractWordCount();
+		return item.getPositions().getInt(0) < item.getTitleWordCount() + item.getAbstractWordCount();
 	}
 
 	public QueryResultItem withScore(double newScore) {

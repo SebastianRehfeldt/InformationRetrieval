@@ -35,8 +35,8 @@ public class SearchEngineTest {
 		if (Settings.COMPRESS)
 			myEngine.compressIndex(); //String directory
 
-		//myEngine.printIndexStats(DIRECTORY);
-		//System.exit(0);
+//		myEngine.printIndexStats();
+//		System.exit(0);
 
 		long time = System.currentTimeMillis() - start;
 
@@ -51,7 +51,7 @@ public class SearchEngineTest {
 
 		CachedWebfile webFile = new CachedWebfile();
 
-		//System.in.read();
+//		System.in.read();
 
 		boolean PRINT_PR = false;
 		if (PRINT_PR) {
@@ -73,8 +73,8 @@ public class SearchEngineTest {
 //		queries = ImmutableList.of("LinkTo:07920906", "LinkTo:07904949", "LinkTo:08078787", "LinkTo:07865308 AND LinkTo:07925708", "LinkTo:07947864 AND LinkTo:07947142", "review guidelines", "on-chip AND OCV NOT asynchronous", "on-chip ocv");
 		queries = ImmutableList.of("Marker pen holder", "sodium polyphosphates", "\"ionizing radiation\"",
 				"solar coronal holes", "patterns in scale-free networks", "\"nail polish\"", "\"keyboard shortcuts\"",
-				"radiographic NOT ventilator", "multi-label AND learning", "LinkTo:07866385");
-		//queries = ImmutableList.of("sodium polyphosphates");
+				"radiographic NOT ventilator", "multi-label AND learning", "LinkTo:07866385", "Marker pen holder #2");
+		//queries = ImmutableList.of("perform advanced structures");
 		int topK = 10;
 
 		for (int i = 0; i < 1; i++)

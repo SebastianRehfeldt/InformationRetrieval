@@ -69,7 +69,7 @@ public final class PostingListItem {
 				i2++;
 			}
 		}
-		return new PostingListItem(patentId, result, documentWordCount, titleWordCount, abstractWordCount);
+		return this.withPositions(result);
 	}
 
 	public PostingListItem merge(PostingListItem item) {
@@ -100,6 +100,10 @@ public final class PostingListItem {
 		while (i2 < elements2Length) {
 			result.add(elements2[i2++]);
 		}
+		return this.withPositions(result);
+	}
+
+	private PostingListItem withPositions(IntArrayList result) {
 		return new PostingListItem(patentId, result, documentWordCount, titleWordCount, abstractWordCount);
 	}
 

@@ -37,8 +37,12 @@ public final class QueryResultList {
 		this(1);
 	}
 
-	public QueryResultList(int combinations) {
+	QueryResultList(int combinations) {
 		this(Lists.newArrayList(), combinations);
+	}
+
+	private QueryResultList(int combinations, int initialSize) {
+		this(Lists.newArrayListWithCapacity(initialSize), combinations);
 	}
 
 	private QueryResultList(List<QueryResultItem> items, int combinations) {
@@ -107,7 +111,7 @@ public final class QueryResultList {
 		Preconditions.checkNotNull(other);
 		List<QueryResultItem> items2 = other.items;
 		int i1 = 0, i2 = 0;
-		QueryResultList result = new QueryResultList(combinations + other.combinations);
+		QueryResultList result = new QueryResultList(combinations + other.combinations, items.size());
 		while (i1 < items.size() && i2 < items2.size()) {
 			QueryResultItem p1 = items.get(i1);
 			QueryResultItem p2 = items2.get(i2);
@@ -146,7 +150,7 @@ public final class QueryResultList {
 		Preconditions.checkNotNull(other);
 		List<QueryResultItem> items2 = other.items;
 		int i1 = 0, i2 = 0;
-		QueryResultList result = new QueryResultList(combinations + other.combinations);
+		QueryResultList result = new QueryResultList(combinations + other.combinations, items.size());
 		while (i1 < items.size() && i2 < items2.size()) {
 			QueryResultItem p1 = items.get(i1);
 			QueryResultItem p2 = items2.get(i2);
@@ -156,8 +160,7 @@ public final class QueryResultList {
 				i1++;
 			} else if (p1.getPatentId() == p2.getPatentId()) {
 				double score = p1.getScore() + p2.getScore();
-				String snippet = p1.getSnippet() != null ? p1.getSnippet() : p2.getSnippet();
-				result.addItem(new QueryResultItem(p1.getItem(), score, snippet));
+				result.addItem(p1.withScore(score));
 				i1++;
 				i2++;
 			} else {

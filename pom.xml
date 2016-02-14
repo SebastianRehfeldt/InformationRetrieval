@@ -17,12 +17,12 @@
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
-            <version>5.3.1</version>
+            <version>5.4.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-analyzers-common</artifactId>
-            <version>5.3.1</version>
+            <version>5.4.1</version>
         </dependency>
         <dependency>
             <groupId>com.esotericsoftware</groupId>
@@ -37,20 +37,26 @@
         <dependency>
             <groupId>it.unimi.dsi</groupId>
             <artifactId>fastutil</artifactId>
-            <version>6.5.9</version>
+            <version>7.0.10</version>
         </dependency>
 
         <!-- TEST -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.11</version>
+            <version>4.12</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.google.truth</groupId>
             <artifactId>truth</artifactId>
-            <version>0.27</version>
+            <version>0.28</version>
+        </dependency>
+        <dependency>
+            <groupId>nl.jqno.equalsverifier</groupId>
+            <artifactId>equalsverifier</artifactId>
+            <version>1.7.7</version>
+            <scope>test</scope>
         </dependency>
 
     </dependencies>
