@@ -3,8 +3,6 @@ package de.hpi.ir.bingo.queries;
 import java.util.Objects;
 
 import com.google.common.base.MoreObjects;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
 
 import de.hpi.ir.bingo.PostingList;
 import de.hpi.ir.bingo.Settings;
@@ -35,6 +33,12 @@ public final class TermQuery implements QueryPart {
 	}
 
 	@Override
+	public QueryResultList execute(Table<PostingList> index, Int2ObjectMap<IntList> citations) {
+		PostingList postingList = Settings.USE_CACHING ? index.getCached(term) : index.get(term);
+		return postingList == null ? new QueryResultList() : new QueryResultList(postingList);
+	}
+
+	@Override
 	public boolean equals(Object o) {
 		if (this == o) return true;
 		if (!(o instanceof TermQuery)) return false;
@@ -52,12 +56,5 @@ public final class TermQuery implements QueryPart {
 		return MoreObjects.toStringHelper(this)
 				.addValue((queryOperator != QueryOperator.DEFAULT ? queryOperator + " " : "") + term)
 				.toString();
-	}
-
-
-	@Override
-	public QueryResultList execute(Table<PostingList> index, Int2ObjectMap<IntList> citations) {
-		PostingList postingList = Settings.USE_CACHING ? index.getCached(term) : index.get(term);
-		return postingList == null ? new QueryResultList() : new QueryResultList(postingList);
 	}
 }

@@ -13,7 +13,7 @@ import it.unimi.dsi.fastutil.ints.IntList;
 
 public final class LinkToQuery implements QueryPart {
 
-	private int linkTo;
+	private final int linkTo;
 	private final QueryOperator queryOperator;
 
 	public LinkToQuery(int linkTo, QueryOperator queryOperator) {
@@ -29,7 +29,7 @@ public final class LinkToQuery implements QueryPart {
 	@Override
 	public QueryResultList execute(Table<PostingList> index, Int2ObjectMap<IntList> citations) {
 		QueryResultList results = new QueryResultList();
-		IntList cites = (IntList) citations.get(linkTo);
+		IntList cites = citations.get(linkTo);
 		if (cites == null) {
 			return new QueryResultList();
 		}
@@ -49,7 +49,7 @@ public final class LinkToQuery implements QueryPart {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(linkTo);
+		return Objects.hash(linkTo, queryOperator);
 	}
 
 	@Override
