@@ -61,7 +61,7 @@ public class SearchEngineTest {
 			for (Integer id : ids) {
 				System.out.printf("id: %d, pr: %e\n", id, pageRank.get(id));
 			}
-			Comparator<Map.Entry<Integer, Double>> comparing = Comparator.comparing(Map.Entry::getValue);
+			//Comparator<Map.Entry<Integer, Double>> comparing = Comparator.comparing(Map.Entry::getValue);
 			//System.out.println(pageRank.entrySet().stream().sorted(comparing.reversed()).limit(10).collect(Collectors.toList()));
 		}
 
@@ -76,8 +76,9 @@ public class SearchEngineTest {
 				"radiographic NOT ventilator", "multi-label AND learning", "LinkTo:07866385", "Marker pen holder #2");
 		//queries = ImmutableList.of("perform advanced structures");
 		int topK = 10;
+		int iterations = 1;
 
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < iterations; i++)
 			for (String query : queries) {
 				start = System.currentTimeMillis();
 				List<SearchEngineBingo.SearchResult> results = myEngine.searchWithSearchResult(query, topK); //topK, prf
@@ -101,7 +102,7 @@ public class SearchEngineTest {
 							//System.out.println(result.patentId + " " + result.title);
 							resultWriter.write(result.patentId + "\t" + result.title + "\n");
 						} else {
-							double gain = myEngine.computeNdcg(goldStandard, ImmutableList.of("" + result.patentId), 1);
+							//double gain = myEngine.computeNdcg(goldStandard, ImmutableList.of("" + result.patentId), 1);
 							//System.out.println(result + "\nScore: " + result.score + " Gain:" + gain + "\n");
 							resultWriter.write(String.format("%d\t%s\n%s\n\n", result.patentId, result.title, result.snippet));
 						}

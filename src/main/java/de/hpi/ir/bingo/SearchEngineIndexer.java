@@ -88,9 +88,7 @@ public final class SearchEngineIndexer {
 
 		PatentHandler.parseXml(fileName, (patent) -> {
 			waitForQueue(queue);
-			Future<Map<String, PostingListItem>> future = processing.submit(() -> {
-				return buildIndexForDocument(patent);
-			});
+			Future<Map<String, PostingListItem>> future = processing.submit(() -> buildIndexForDocument(patent));
 			waitForQueue(finalizerQueue);
 			finalizer.submit(verbose(() -> {
 				Map<String, PostingListItem> docIndex;

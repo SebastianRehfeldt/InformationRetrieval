@@ -58,7 +58,7 @@ public final class TableMerger {
 				readNext(queue, readers, next.index);
 			}
 			while (next != null && entry.key.equals(next.key)) {
-				entry = new Holder<T>(entry.key, entry.value.mergedWith(next.value), -1);
+				entry = new Holder<>(entry.key, entry.value.mergedWith(next.value), -1);
 				next = queue.poll();
 				if (next != null) {
 					readNext(queue, readers, next.index);
@@ -78,7 +78,7 @@ public final class TableMerger {
 	private static <T extends Mergeable<T>> void readNext(PriorityQueue<Holder<T>> queue, List<TableReader<T>> readers, int index) {
 		Map.Entry<String, T> entry = readers.get(index).readNext();
 		if (entry != null) {
-			Holder<T> holder = new Holder<T>(entry.getKey(), entry.getValue(), index);
+			Holder<T> holder = new Holder<>(entry.getKey(), entry.getValue(), index);
 			queue.add(holder);
 		}
 	}

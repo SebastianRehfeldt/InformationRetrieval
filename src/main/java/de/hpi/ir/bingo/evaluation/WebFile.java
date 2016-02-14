@@ -178,15 +178,13 @@ public final class WebFile {
             query = query.replace("NOT ", "-");
             String queryTerms = query.replaceAll(" ", "+");
             String queryUrl = "https://www.google.com/search?hl=en&q=" + queryTerms + "&tbm=pts&num=" + safeNumber + "&tbs=ptso:us,ptss:g,ptst:u";
-            String page = "";
             openWebFile(queryUrl);
-            page = (String) getContent();
+            String page = (String) getContent();
 
             Pattern pattern = Pattern.compile("<div><h3 class=\"r\">(.*?)</a></h3></div>");
             Matcher matcher = pattern.matcher(page);
-            String textMatched = "";
             while (matcher.find()) {
-                textMatched = matcher.group(1);
+                String textMatched = matcher.group(1);
                 // System.out.print("textMatched " + textMatched + "\n");
                 Element link = Jsoup.parse(textMatched).select("a").first();
                 String url = link.attr("href");

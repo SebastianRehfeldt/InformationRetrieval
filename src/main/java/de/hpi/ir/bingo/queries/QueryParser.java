@@ -60,12 +60,9 @@ public final class QueryParser {
 			}
 		}
 
-
 		if (isBoolean) {
 			return new BooleanQuery(queryParts);
 		} else {
-			int l = queryParts.size();
-
 			return new NormalQuery(queryParts, prf);
 		}
 	}

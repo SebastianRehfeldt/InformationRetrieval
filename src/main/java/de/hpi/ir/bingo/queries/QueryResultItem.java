@@ -34,28 +34,6 @@ public final class QueryResultItem {
 		this.score = score;
 	}
 
-	@Override
-	public String toString() {
-		return MoreObjects.toStringHelper(this)
-				.addValue(item)
-				.add("score", score)
-				.toString();
-	}
-
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof QueryResultItem)) return false;
-		QueryResultItem that = (QueryResultItem) o;
-		return Double.compare(that.score, score) == 0 &&
-				Objects.equal(item, that.item);
-	}
-
-	@Override
-	public int hashCode() {
-		return Objects.hashCode(item, score);
-	}
-
 	public String getSnippet() {
 		return snippet;
 	}
@@ -82,4 +60,27 @@ public final class QueryResultItem {
 	public QueryResultItem withScore(double newScore) {
 		return new QueryResultItem(item, newScore, snippet);
 	}
+
+	@Override
+	public String toString() {
+		return MoreObjects.toStringHelper(this)
+				.addValue(item)
+				.add("score", score)
+				.toString();
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof QueryResultItem)) return false;
+		QueryResultItem that = (QueryResultItem) o;
+		return Double.compare(that.score, score) == 0 &&
+				Objects.equal(item, that.item);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hashCode(item, score);
+	}
+
 }
