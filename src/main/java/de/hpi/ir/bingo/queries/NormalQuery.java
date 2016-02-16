@@ -48,7 +48,7 @@ public final class NormalQuery implements Query {
 		for (int i = 1; i < parts.size(); i++) {
 			QueryResultList currentResult = parts.get(i).execute(index, citations);
 			currentResult.calculateTfidfScores(1.0, patents.getSize());
-			finalResult = finalResult.combine(currentResult);
+			finalResult = finalResult.combine(currentResult, 1);
 			if (parts.get(i) instanceof TermQuery && Settings.HIGH_QUALITY) { // check if terms occur next to each other
 				if (previusResult != null) {
 					QueryResultList combinedResult = previusResult.combinePhrase(currentResult);
@@ -62,14 +62,14 @@ public final class NormalQuery implements Query {
 		}
 
 		if (prf > 0) {
-			List<QueryResultItem> result = new ArrayList<>(finalResult.getItems());
-			result.sort(QueryResultList.SCORE_COMPARATOR);
-			List<String> topToken = getPrfToken(result, patents);
+			QueryResultItem[] result = finalResult.getItems().toArray(new QueryResultItem[finalResult.getItems().size()]);
+			Arrays.parallelSort(result, QueryResultList.SCORE_COMPARATOR);
+			List<String> topToken = getPrfToken(Arrays.asList(result), patents);
 			System.out.println("extend query with: " + topToken);
 			for (String stringDoubleEntry : topToken) {
 				QueryResultList resultList2 = new TermQuery(stringDoubleEntry, null).execute(index, citations);
-				resultList2.calculateTfidfScores(0.02, patents.getSize());
-				finalResult = finalResult.combine(resultList2);
+				resultList2.calculateTfidfScores(0.01, patents.getSize());
+				finalResult = finalResult.combine(resultList2, 0.0001);
 			}
 		}
 		QueryResultItem[] result = finalResult.getItems().toArray(new QueryResultItem[finalResult.getItems().size()]);

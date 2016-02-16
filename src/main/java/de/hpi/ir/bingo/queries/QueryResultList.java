@@ -80,7 +80,7 @@ public final class QueryResultList {
 	}
 
 	public QueryResultList or(QueryResultList other) {
-		return combine(other); // use the same ranking model
+		return combine(other, 1); // use the same ranking model
 	}
 
 	public QueryResultList not(QueryResultList other) {
@@ -107,7 +107,7 @@ public final class QueryResultList {
 		return result;
 	}
 
-	public QueryResultList combine(QueryResultList other) {
+	public QueryResultList combine(QueryResultList other, double otherMissingFactor) {
 		Preconditions.checkNotNull(other);
 		List<QueryResultItem> items2 = other.items;
 		int i1 = 0, i2 = 0;
@@ -116,7 +116,7 @@ public final class QueryResultList {
 			QueryResultItem p1 = items.get(i1);
 			QueryResultItem p2 = items2.get(i2);
 			if (p1.getPatentId() < p2.getPatentId()) {
-				double score = p1.getScore() + MISSING_SCORE * other.combinations;
+				double score = p1.getScore() + MISSING_SCORE * other.combinations * otherMissingFactor;
 				result.addItem(p1.withScore(score));
 				i1++;
 			} else if (p1.getPatentId() == p2.getPatentId()) {
@@ -134,7 +134,7 @@ public final class QueryResultList {
 		}
 		while (i1 < items.size()) {
 			QueryResultItem p1 = items.get(i1++);
-			result.addItem(p1.withScore(p1.getScore() + MISSING_SCORE * other.combinations));
+			result.addItem(p1.withScore(p1.getScore() + MISSING_SCORE * other.combinations * otherMissingFactor));
 		}
 		while (i2 < items2.size()) {
 			QueryResultItem p2 = items2.get(i2++);

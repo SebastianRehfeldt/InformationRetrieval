@@ -87,7 +87,7 @@ public class SearchEngineTest {
 				System.out.print("Searching Time:\t" + time + "\tms\n");
 
 				List<String> patentIds = myEngine.getIds(results);
-				List<String> goldStandard = webFile.getGoogleRanking(query);
+				List<String> goldStandard = webFile.getGoogleRanking(query.replaceAll("#[0-9]", ""));
 
 				resultWriter.write("[" + query + "]\n");
 				double ndcg = myEngine.computeNdcg(goldStandard, patentIds, topK);

@@ -27,7 +27,7 @@ public class QueryResultListTest {
 
 	@Test
 	public void testCombine() throws Exception {
-		QueryResultList result = postingList1.combine(postingList2);
+		QueryResultList result = postingList1.combine(postingList2, 1);
 
 		QueryResultList expectedPostingList = new QueryResultList(2);
 		expectedPostingList.addItem(new QueryResultItem(new PostingListItem(1, new int[]{3, 4, 5, 7},10,(short)10, (short)0),0, null));
